@@ -18,7 +18,6 @@ export class AppService implements OnModuleInit {
         username: superAdminUsername,
         password: hashedPassword,
       }
-
       await this.usersService.create({
         ...authSignupDto,
         roles: ["super-admin"],
