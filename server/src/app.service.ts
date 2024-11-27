@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from "@nestjs/common"
 import * as bcrypt from "bcrypt"
 import { UsersService } from "./users/users.service"
-import { AuthSignupDto } from "./auth/dto/auth.signup.dto"
+import { SignupDto } from "./auth/dto/signup.dto"
 
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -14,14 +14,14 @@ export class AppService implements OnModuleInit {
     const superAdmin = await this.usersService.findOne(superAdminUsername)
     if (!superAdmin) {
       const hashedPassword = await bcrypt.hash(superAdminPassword, 10)
-      const authSignupDto: AuthSignupDto = {
+      const SignupDto: SignupDto = {
         username: superAdminUsername,
         password: hashedPassword,
       }
-      await this.usersService.create({
-        ...authSignupDto,
-        roles: ["super-admin"],
+      const user = await this.usersService.create({
+        ...SignupDto
       })
+      await this.usersService.addRole(user._id.toString(), "super-admin")
     }
   }
 }
