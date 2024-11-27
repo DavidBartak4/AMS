@@ -16,7 +16,7 @@ export class MediaService {
     })
   }
 
-  async uploadMedia(file: Express.MulterFile) {
+  async uploadMediaInstance(file: Express.MulterFile) {
     const self = this
     return new Promise(function (resolve, reject) {
       const uploadStream = self.bucket.openUploadStream(file.originalname, {
@@ -53,7 +53,7 @@ export class MediaService {
       throw new NotFoundException("File not found")
     }
   }
-  async listMedia() {
+  async getMedia() {
     try {
       const files = await this.bucket.find().toArray();
       return files.map((file) => ({
@@ -68,7 +68,7 @@ export class MediaService {
     }
   }
   
-  async deleteMedia(id: string) {
+  async deleteMediaInstance(id: string) {
     try {
       const objectId = new ObjectId(id)
       await this.bucket.delete(objectId)

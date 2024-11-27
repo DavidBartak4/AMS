@@ -14,12 +14,12 @@ export class MediaController {
     if (!file) {
       throw new BadRequestException("No file uploaded")
     }
-    return await this.mediaService.uploadMedia(file)
+    return await this.mediaService.uploadMediaInstance(file)
   }
 
   @Get()
   async listMedia() {
-    return await this.mediaService.listMedia()
+    return await this.mediaService.getMedia()
   }
 
   @Get(":mediaId/file")
@@ -29,7 +29,7 @@ export class MediaController {
 
   @Delete(":mediaId")
   async deleteMedia(@Param(new ValidationPipe()) params: MediaParamsDto) {
-    await this.mediaService.deleteMedia(params.mediaId)
+    await this.mediaService.deleteMediaInstance(params.mediaId)
     return
   }
 }
