@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
-import { Response } from "express"
 
 @Injectable()
 export class MediaService {
@@ -12,7 +11,7 @@ export class MediaService {
     this.client = new MongoClient("mongodb://localhost/AMS")
     this.client.connect().then(function () {
       const db = self.client.db("AMS")
-      self.bucket = new GridFSBucket(db, { bucketName: "uploads" })
+      self.bucket = new GridFSBucket(db, { bucketName: "media" })
     })
   }
 

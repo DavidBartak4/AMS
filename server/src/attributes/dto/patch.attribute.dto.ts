@@ -9,6 +9,7 @@ export class PatchAttributeBodyDto {
   
     @IsOptional()
     @IsString()
+    @MaxLength(1000)
     description?: string
   
     @IsOptional()

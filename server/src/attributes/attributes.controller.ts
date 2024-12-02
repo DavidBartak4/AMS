@@ -13,8 +13,8 @@ export class AttributesController {
 
   @Post()
   @Roles("super-admin", "admin")
-  async create(@Body() dto: AttributeBodyDto) {
-    return this.attributesService.createAttribute(dto)
+  async create(@Body() body: AttributeBodyDto) {
+    return this.attributesService.createAttribute(body)
   }
 
   @Get()

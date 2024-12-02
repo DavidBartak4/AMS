@@ -14,6 +14,7 @@ export class AttributeBodyDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   description?: string
 
   @IsOptional()

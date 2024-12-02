@@ -6,7 +6,7 @@ import { AttributeBodyDto } from "./dto/attribute.dto"
 import { PatchAttributeBodyDto } from "./dto/patch.attribute.dto"
 import { MediaService } from "src/media/media.service"
 
-@Injectable()
+@Injectable() 
 export class AttributesService {
   constructor(@InjectModel("Attribute") private readonly attributeModel: Model<AttributeDocument>, private readonly mediaService: MediaService) {}
 

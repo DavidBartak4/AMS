@@ -6,7 +6,6 @@ import { RolesGuard } from "./guards/roles.guard"
 import { Roles } from "./decorators/roles.decorator"
 import { JwtAuthGuard } from "./guards/jwt.guard"
 
-
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -14,12 +13,12 @@ export class AuthController {
   @Post("admins")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("super-admin")
-  signup(@Body() dto: SignupDto) {
-    return this.authService.signup(dto)
+  signup(@Body() body: SignupDto) {
+    return this.authService.signup(body)
   }
 
   @Post("login")
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto)
+  login(@Body() body: LoginDto) {
+    return this.authService.login(body)
   }
 }

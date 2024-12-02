@@ -5,10 +5,10 @@ export type AttributeDocument = Attribute & Document
 
 @Schema({ timestamps: true })
 export class Attribute {
-  @Prop({ required: true })
+  @Prop({ required: true, minlength: 1, maxlength: 50 })
   name: string
 
-  @Prop()
+  @Prop({maxlength: 1000})
   description: string
 
   @Prop()
