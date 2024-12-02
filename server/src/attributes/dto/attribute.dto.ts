@@ -1,20 +1,23 @@
-import { IsString, IsMongoId, IsOptional } from "class-validator"
+import { IsString, IsMongoId, IsOptional, MinLength, MaxLength } from "class-validator"
 
 export class AttributeParamsDto {
-  @IsMongoId()
   @IsString()
+  @IsMongoId()
   attributeId: string
 }
 
 export class AttributeBodyDto {
   @IsString()
+  @MinLength(1)
+  @MaxLength(50)
   name: string
 
+  @IsOptional()
   @IsString()
-  description: string
+  description?: string
 
   @IsOptional()
-  @IsMongoId()
   @IsString()
+  @IsMongoId()
   imageId?: string
 }

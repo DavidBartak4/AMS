@@ -9,7 +9,7 @@ export class AppService implements OnModuleInit {
 
   async onModuleInit() {
     const superAdminUsername = process.env.SUPER_ADMIN_USERNAME || "super_admin"
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "123456"
+    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "12345678"
 
     const superAdmin = await this.usersService.findOne(superAdminUsername)
     if (!superAdmin) {

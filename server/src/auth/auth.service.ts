@@ -17,7 +17,14 @@ export class AuthService {
       throw new ConflictException("Username is already taken")
     }
     const user = await this.usersService.create({ username: username, password: hashedPassword })
-    return this.generateToken(user)
+    const token = this.generateToken(user)
+    return {
+      token: token.access_token,
+      user: {
+        _id: user._id,
+        username: user.username
+      }
+    }
   }
 
   async login(dto: LoginDto) {
@@ -26,7 +33,14 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException("Invalid credentials")
     }
-    return this.generateToken(user)
+    const token = this.generateToken(user)
+    return {
+      token: token.access_token,
+      user: {
+        _id: user._id,
+        username: user.username
+      }
+    }
   }
 
   generateToken(user: any) {

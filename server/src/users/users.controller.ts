@@ -31,8 +31,7 @@ export class UsersController {
 
   @Delete(":userId")
   @Roles("super-admin")
-  removeUser(@Param(new ValidationPipe()) params: DeleteUserParamsDto) {
-    this.usersService.deleteUser(params.userId)
-    return
+  deleteUser(@Param(new ValidationPipe()) params: DeleteUserParamsDto) {
+    return this.usersService.deleteUser(params.userId)
   }
 }

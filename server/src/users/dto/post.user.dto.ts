@@ -1,11 +1,13 @@
-import { IsString, MinLength } from "class-validator"
+import { IsString, MinLength, MaxLength } from "class-validator"
 
 export class PostUserBodyDto {
-  @MinLength(6)
   @IsString()
+  @MinLength(3)
+  @MaxLength(20)
   username: string
 
-  @MinLength(6)
   @IsString()
+  @MinLength(8)
+  @MaxLength(200)
   password: string
 }

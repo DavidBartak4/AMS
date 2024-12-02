@@ -6,16 +6,13 @@ export type AttributeDocument = Attribute & Document
 @Schema({ timestamps: true })
 export class Attribute {
   @Prop({ required: true })
-  _id: string
-
-  @Prop({ required: true, unique: true })
   name: string
 
-  @Prop({ required: true })
+  @Prop()
   description: string
 
   @Prop()
-  mediaId: string
+  imageId: string
 }
 
 export const AttributeSchema = SchemaFactory.createForClass(Attribute)

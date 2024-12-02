@@ -40,31 +40,42 @@ export class MediaService {
     })
   }
 
-  async getMediaFile(id: string, res: Response) {
-    try {
-      const downloadStream = this.bucket.openDownloadStream(new ObjectId(id))
-      downloadStream.pipe(res).on("error", function () {
-        throw new NotFoundException("File not found")
-      })
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("Argument passed")) {
-        throw new NotFoundException("Invalid file ID")
-      }
+  async getMediaFile(id: string) {
+    const objectId = new ObjectId(id)
+    const file = await this.bucket.find({ _id: objectId }).toArray()
+    if (file.length === 0) {
       throw new NotFoundException("File not found")
     }
+    try {
+      const downloadStream = this.bucket.openDownloadStream(objectId)
+      return downloadStream
+    } catch (error) {
+      throw new BadRequestException("Error retrieving file")
+    }
   }
+
+  async doesMediaExist(id: string) {
+    try {
+      const objectId = new ObjectId(id)
+      const file = await this.bucket.find({ _id: objectId }).toArray()
+      return file.length > 0
+    } catch (error) {
+      return false
+    }
+  }
+
   async getMedia() {
     try {
-      const files = await this.bucket.find().toArray();
+      const files = await this.bucket.find().toArray()
       return files.map((file) => ({
         _id: file._id,
         filename: file.filename,
         contentType: file.contentType,
         uploadDate: file.uploadDate,
         length: file.length,
-      }));
+      }))
     } catch (error) {
-      throw new BadRequestException("Could not list media files");
+      throw new BadRequestException("Could not list media files")
     }
   }
   
@@ -72,14 +83,11 @@ export class MediaService {
     try {
       const objectId = new ObjectId(id)
       await this.bucket.delete(objectId)
-      return { message: "File deleted successfully", id }
+      return
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("File not found for id")) {
-          throw new NotFoundException(`File not found for ID: ${id}`)
-        }
-        if (error.message.includes("Argument passed")) {
-          throw new BadRequestException(`Invalid file ID: ${id}`)
+          throw new NotFoundException("File not found")
         }
       }
       throw error

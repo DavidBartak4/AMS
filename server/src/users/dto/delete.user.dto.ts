@@ -1,7 +1,7 @@
 import { IsString, IsMongoId } from "class-validator"
 
 export class DeleteUserParamsDto {
-  @IsMongoId()
   @IsString()
+  @IsMongoId()
   userId: string
 }

@@ -17,6 +17,10 @@ export class UsersService {
   }
  
   async deleteUser(userId: string) {
+    const user = await this.userModel.findById(userId).exec()
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} does not exist`)
+    }
     return await this.userModel.findByIdAndDelete(userId).exec()
   }
 
