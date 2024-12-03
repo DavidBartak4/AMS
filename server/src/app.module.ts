@@ -18,7 +18,7 @@ import { ConfigurationModule } from "./configuration/configuration.module"
     AttributesModule,
     RoomsModule,
     BookingModule,
-    ConfigurationModule
+    ConfigurationModule,
   ],
   providers: [AppService],
 })

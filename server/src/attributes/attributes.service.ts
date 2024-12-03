@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { AttributeDocument } from "./schemas/attribute.schema"
@@ -6,14 +10,18 @@ import { AttributeBodyDto } from "./dto/attribute.dto"
 import { PatchAttributeBodyDto } from "./dto/patch.attribute.dto"
 import { MediaService } from "src/media/media.service"
 
-@Injectable() 
+@Injectable()
 export class AttributesService {
-  constructor(@InjectModel("Attribute") private readonly attributeModel: Model<AttributeDocument>, private readonly mediaService: MediaService) {}
+  constructor(
+    @InjectModel("Attribute")
+    private readonly attributeModel: Model<AttributeDocument>,
+    private readonly mediaService: MediaService,
+  ) {}
 
   async createAttribute(dto: AttributeBodyDto) {
     if (dto.imageId && !(await this.mediaService.doesMediaExist(dto.imageId))) {
-      throw new BadRequestException("Media provided does not exist.");
-    }    
+      throw new BadRequestException("Media provided does not exist.")
+    }
     return await this.attributeModel.create(dto)
   }
 
@@ -31,9 +39,13 @@ export class AttributesService {
 
   async patchAttribute(attributeId: string, dto: PatchAttributeBodyDto) {
     if (dto.imageId && !(await this.mediaService.doesMediaExist(dto.imageId))) {
-      throw new BadRequestException("Media provided does not exist.");
-    }    
-    const updatedAttribute = await this.attributeModel.findByIdAndUpdate(attributeId, dto, { new: true })
+      throw new BadRequestException("Media provided does not exist.")
+    }
+    const updatedAttribute = await this.attributeModel.findByIdAndUpdate(
+      attributeId,
+      dto,
+      { new: true },
+    )
     if (!updatedAttribute) {
       throw new NotFoundException(`Attribute with ID ${attributeId} not found.`)
     }

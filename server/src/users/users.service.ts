@@ -17,7 +17,7 @@ export class UsersService {
   async findOne(username: string) {
     return await this.userModel.findOne({ username }).exec()
   }
- 
+
   async deleteUser(userId: string) {
     const user = await this.userModel.findById(userId).exec()
     if (!user) {
@@ -52,9 +52,12 @@ export class UsersService {
   }
 
   async getAdmins() {
-    return this.userModel.find({
-      roles: { $in: ["admin", "super-admin"] },
-    }).select("_id username roles").exec()
+    return this.userModel
+      .find({
+        roles: { $in: ["admin", "super-admin"] },
+      })
+      .select("_id username roles")
+      .exec()
   }
 
   async findRoles(userId: string) {
@@ -63,7 +66,10 @@ export class UsersService {
   }
 
   async getUser(userId: string) {
-    const user = await this.userModel.findById(userId).select("_id username").exec()
+    const user = await this.userModel
+      .findById(userId)
+      .select("_id username")
+      .exec()
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`)
     }

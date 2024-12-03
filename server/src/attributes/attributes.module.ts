@@ -7,8 +7,10 @@ import { MediaModule } from "src/media/media.module"
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Attribute.name, schema: AttributeSchema }]),
-    MediaModule
+    MongooseModule.forFeature([
+      { name: Attribute.name, schema: AttributeSchema },
+    ]),
+    MediaModule,
   ],
   controllers: [AttributesController],
   providers: [AttributesService],

@@ -8,13 +8,16 @@ import { PatchRoomBodyDto } from "./dto/patch.room.dto"
 
 @Injectable()
 export class RoomsService {
-  constructor(@InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>, private readonly mediaService: MediaService) {}
+  constructor(
+    @InjectModel(Room.name) private readonly roomModel: Model<RoomDocument>,
+    private readonly mediaService: MediaService,
+  ) {}
 
   private async validateMediaIds(images: string[]) {
     for (const mediaId of images) {
-      const exists = await this.mediaService.doesMediaExist(mediaId);
+      const exists = await this.mediaService.doesMediaExist(mediaId)
       if (!exists) {
-        throw new NotFoundException(`Media with ID ${mediaId} does not exist`);
+        throw new NotFoundException(`Media with ID ${mediaId} does not exist`)
       }
     }
   }

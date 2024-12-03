@@ -1,39 +1,71 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
-import { InjectModel } from "@nestjs/mongoose"
-import { Model } from "mongoose"
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common"
+import { InjectModel, InjectConnection } from "@nestjs/mongoose"
+import { Model, Connection } from "mongoose"
 import { BookingDocument, Booking } from "./schemas/booking.schema"
 import { PostBookingBodyDto } from "./dto/post.booking.dto"
-import { PatchRoomBodyDto } from "src/rooms/dto/patch.room.dto"
 import { v4 as uuidv4 } from "uuid"
-import { ConfigurationService } from "src/configuration/configuration.service"
+import * as nodeMailer from "nodemailer"
+import { ConfigurationService } from "../configuration/configuration.service"
+import { RoomsService } from "src/rooms/rooms.service"
+import { PatchBookingBodyDto } from "./dto/patch.booking.dto"
 
 @Injectable()
 export class BookingService {
-  constructor(@InjectModel(Booking.name) private readonly bookingModel: Model<BookingDocument>, private readonly configurationService: ConfigurationService) {}
+  constructor(
+    @InjectModel(Booking.name)
+    private readonly bookingModel: Model<BookingDocument>,
+    private readonly configurationService: ConfigurationService,
+    private readonly roomsService: RoomsService,
+    @InjectConnection() private readonly connection: Connection,
+  ) {}
 
   async createBooking(dto: PostBookingBodyDto) {
+    await this.roomsService.getRoom(dto.roomId)
     const bookingCode = this.generateBookingCode()
     const booking = await this.bookingModel.create({ ...dto, bookingCode })
-    await this.sendBookingConfirmation(booking)
-    return booking
+    try {
+      await this.sendBookingConfirmation(booking)
+      return booking
+    } catch (error) {
+      await this.deleteBooking(booking._id.toString())
+      throw new BadRequestException(
+        "Failed to send confirmation email, booking failed",
+      )
+    }
   }
 
   private generateBookingCode(): string {
-    return `BOOK-${uuidv4().slice(0, 8).toUpperCase()}`
+    return `${uuidv4().slice(0, 8).toUpperCase()}`
   }
 
   private async sendBookingConfirmation(booking: BookingDocument) {
-    /*
-    const config = await this.configurationService.getConfiguration()
-    if (!config.mailHost || !config.mailUsername || !config.mailPassword) {
-      throw new Error("Mail configuration is not set up")
-    }
-    await this.mailerService.sendMail({
-      to: booking.email,
-      subject: "Booking Confirmation",
-      text: `Dear customer,\n\nYour booking has been successfully created. Booking Code: ${booking.bookingCode}`,
+    const configuration = await this.configurationService.getConfiguration()
+    const { mailHost, mailPort, mailUsername, mailPassword } = configuration
+    const transporter = nodeMailer.createTransport({
+      host: mailHost,
+      port: mailPort || 587,
+      secure: mailPort === 465,
+      auth: {
+        user: mailUsername,
+        pass: mailPassword,
+      },
     })
-    */
+    const mailOptions = {
+      from: `"Booking Confirmation" <${mailUsername}>`,
+      to: booking.email,
+      subject: "Your Booking Confirmation",
+      text: `Hello ${booking.owner.firstname},\n\nYour booking has been confirmed.\n\nBooking Code: ${booking.bookingCode}\nCheck-in: ${booking.checkIn}\nCheck-out: ${booking.checkOut}\n\nThank you for choosing our service.`,
+      html: `<p>Hello ${booking.owner.firstname},</p><p>Your booking has been confirmed.</p><p><strong>Booking Code:</strong> ${booking.bookingCode}</p><p><strong>Check-in:</strong> ${booking.checkIn}</p><p><strong>Check-out:</strong> ${booking.checkOut}</p><p>Thank you for choosing our service.</p>`,
+    }
+    try {
+      await transporter.sendMail(mailOptions)
+    } catch (error) {
+      throw new Error("Failed to send booking confirmation email")
+    }
   }
 
   async getBookings() {
@@ -46,8 +78,38 @@ export class BookingService {
     return booking
   }
 
-  async patchBooking(bookingId: string, dto: PatchRoomBodyDto) {
-    const booking = await this.bookingModel.findByIdAndUpdate(bookingId, dto, { new: true }).exec()
+  async getBookingsByRoom(roomId: string) {
+    await this.roomsService.getRoom(roomId)
+    const bookings = await this.bookingModel.find({ roomId }).exec()
+    return bookings
+  }
+
+  async checkBookingConflict(roomId: string, checkIn: Date, checkOut: Date) {
+    await this.roomsService.getRoom(roomId)
+    if (checkIn >= checkOut) {
+      throw new BadRequestException("Check-in date must be before check-out date")
+    }
+    const conflictingBookings = await this.bookingModel
+      .find({
+        roomId,
+        $or: [
+          { checkIn: { $lt: checkOut }, checkOut: { $gt: checkIn } },
+        ],
+      })
+      .exec()
+    if (conflictingBookings.length > 0) {
+      throw new BadRequestException("Conflicting bookings exist for the provided date range")
+    }
+    return { message: "No conflicts found, the room is available for booking" }
+  }
+
+  async patchBooking(bookingId: string, dto: PatchBookingBodyDto) {
+    if (dto.roomId) {
+      await this.roomsService.getRoom(dto.roomId)
+    }
+    const booking = await this.bookingModel
+      .findByIdAndUpdate(bookingId, dto, { new: true })
+      .exec()
     if (!booking) throw new NotFoundException("Booking not found")
     return booking
   }

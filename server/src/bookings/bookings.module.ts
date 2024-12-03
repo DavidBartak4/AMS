@@ -4,13 +4,15 @@ import { BookingSchema, Booking } from "./schemas/booking.schema"
 import { BookingsController } from "./bookings.controller"
 import { BookingService } from "./bookings.service"
 import { ConfigurationModule } from "src/configuration/configuration.module"
+import { RoomsModule } from "src/rooms/rooms.module"
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Booking.name, schema: BookingSchema }]),
-    ConfigurationModule
+    ConfigurationModule,
+    RoomsModule,
   ],
   controllers: [BookingsController],
-  providers: [BookingService]
+  providers: [BookingService],
 })
 export class BookingModule {}

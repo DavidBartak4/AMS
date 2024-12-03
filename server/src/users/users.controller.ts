@@ -1,4 +1,12 @@
-import { Controller, Get, Param, UseGuards, ValidationPipe, Req, Delete } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  ValidationPipe,
+  Req,
+  Delete,
+} from "@nestjs/common"
 import { JwtAuthGuard } from "../auth/guards/jwt.guard"
 import { UsersService } from "./users.service"
 import { GetUserParamsDto } from "./dto/get.user.dto"

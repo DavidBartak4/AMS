@@ -1,4 +1,10 @@
-import { IsString, IsMongoId, IsOptional, MinLength, MaxLength } from "class-validator"
+import {
+  IsString,
+  IsMongoId,
+  IsOptional,
+  MinLength,
+  MaxLength,
+} from "class-validator"
 
 export class AttributeParamsDto {
   @IsString()

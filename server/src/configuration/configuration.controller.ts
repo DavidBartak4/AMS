@@ -1,9 +1,13 @@
-import { Controller, Get, Patch, Body } from "@nestjs/common"
+import { Controller, Get, Patch, Body, UseGuards } from "@nestjs/common"
 import { ConfigurationService } from "./configuration.service"
 import { PatchMailConfigurationBodyDto } from "./dto/patch.mailConfiguration.dto"
-import { PatchGoogleApiKeyBodyDto } from "./dto/patch.googleApiKey.dto"
+import { JwtAuthGuard } from "src/auth/guards/jwt.guard"
+import { RolesGuard } from "src/auth/guards/roles.guard"
+import { Roles } from "src/auth/decorators/roles.decorator"
 
-@Controller("config")
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles("super-admin", "admin")
+@Controller("configuration")
 export class ConfigurationController {
   constructor(private readonly configurationService: ConfigurationService) {}
 
@@ -15,10 +19,5 @@ export class ConfigurationController {
   @Patch("mail")
   async updateMailConfig(@Body() dto: PatchMailConfigurationBodyDto) {
     return await this.configurationService.patchMailConfiguration(dto)
-  }
-
-  @Patch("google-api-key")
-  async updateGoogleApiKey(@Body() dto: PatchGoogleApiKeyBodyDto) {
-    return await this.configurationService.patchGoogleApiKey(dto)
   }
 }

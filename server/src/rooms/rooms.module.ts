@@ -8,9 +8,10 @@ import { MediaModule } from "src/media/media.module"
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Room.name, schema: RoomSchema }]),
-    MediaModule
+    MediaModule,
   ],
   controllers: [RoomsController],
-  providers: [RoomsService]
+  providers: [RoomsService],
+  exports: [RoomsService],
 })
 export class RoomsModule {}

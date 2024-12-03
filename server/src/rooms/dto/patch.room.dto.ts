@@ -1,4 +1,14 @@
-import { IsString, MinLength, MaxLength, IsOptional, IsArray, IsNumber, IsMongoId, ValidateNested, IsCurrency } from "class-validator"
+import {
+  IsString,
+  MinLength,
+  MaxLength,
+  IsOptional,
+  IsArray,
+  IsNumber,
+  IsMongoId,
+  ValidateNested,
+  IsCurrency,
+} from "class-validator"
 import { Type } from "class-transformer"
 import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
 
@@ -29,7 +39,7 @@ export class PatchRoomBodyDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @IsMongoId({ each: true})
+  @IsMongoId({ each: true })
   images?: string[]
 
   @IsOptional()
@@ -38,6 +48,8 @@ export class PatchRoomBodyDto {
 
   @IsOptional()
   @ValidateNested()
-  @Type(function() {return PriceDto})
+  @Type(function () {
+    return PriceDto
+  })
   price?: PriceDto
 }

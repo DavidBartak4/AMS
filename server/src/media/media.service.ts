@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common"
 import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
 import { File } from "multer"
 
@@ -78,7 +82,7 @@ export class MediaService {
       throw new BadRequestException("Could not list media files")
     }
   }
-  
+
   async deleteMediaInstance(id: string) {
     try {
       const objectId = new ObjectId(id)

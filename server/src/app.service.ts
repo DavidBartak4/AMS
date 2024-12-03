@@ -11,7 +11,9 @@ export class AppService implements OnModuleInit {
     const superAdminUsername = process.env.SUPER_ADMIN_USERNAME
     const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
     if (!superAdminUsername || !superAdminPassword) {
-      throw new error("super admin .env default login details are not specified")
+      throw new error(
+        "super admin .env default login details are not specified",
+      )
     }
     const superAdmin = await this.usersService.findOne(superAdminUsername)
     if (!superAdmin) {
@@ -20,7 +22,7 @@ export class AppService implements OnModuleInit {
         password: superAdminPassword,
       }
       const user = await this.usersService.create({
-        ...SignupDto
+        ...SignupDto,
       })
       await this.usersService.addRole(user._id.toString(), "super-admin")
     }

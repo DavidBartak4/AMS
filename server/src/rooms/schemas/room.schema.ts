@@ -3,7 +3,7 @@ import { Document } from "mongoose"
 
 export type RoomDocument = Room & Document
 
-@Schema({ _id: false})
+@Schema({ _id: false })
 export class Price {
   @Prop()
   value?: number
@@ -17,7 +17,7 @@ export class Room {
   @Prop({ required: true, minlength: 1, maxlength: 50 })
   name: string
 
-  @Prop({maxlength: 1000})
+  @Prop({ maxlength: 1000 })
   description: string
 
   @Prop()

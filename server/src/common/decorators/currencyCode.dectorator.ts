@@ -1,4 +1,8 @@
-import { registerDecorator, ValidationOptions, ValidationArguments } from "class-validator"
+import {
+  registerDecorator,
+  ValidationOptions,
+  ValidationArguments,
+} from "class-validator"
 const currencyCodes = require("currency-codes")
 
 export function IsCurrencyCode(validationOptions?: ValidationOptions) {
@@ -11,7 +15,8 @@ export function IsCurrencyCode(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any) {
           return (
-            typeof value === "string" && currencyCodes.codes().includes(value.toUpperCase())
+            typeof value === "string" &&
+            currencyCodes.codes().includes(value.toUpperCase())
           )
         },
         defaultMessage(args: ValidationArguments) {

@@ -16,9 +16,6 @@ export class Configuration {
 
   @Prop({ required: false, default: null })
   mailPassword: string
-
-  @Prop({ required: false, default: null })
-  googleApiKey: string
 }
 
 export const ConfigurationSchema = SchemaFactory.createForClass(Configuration)
