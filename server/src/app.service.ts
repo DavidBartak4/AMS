@@ -1,22 +1,23 @@
 import { Injectable, OnModuleInit } from "@nestjs/common"
-import * as bcrypt from "bcrypt"
 import { UsersService } from "./users/users.service"
 import { SignupDto } from "./auth/dto/signup.dto"
+import { error } from "console"
 
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(private readonly usersService: UsersService) {}
 
   async onModuleInit() {
-    const superAdminUsername = process.env.SUPER_ADMIN_USERNAME || "super_admin"
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || "12345678"
-
+    const superAdminUsername = process.env.SUPER_ADMIN_USERNAME
+    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
+    if (!superAdminUsername || !superAdminPassword) {
+      throw new error("super admin .env default login details are not specified")
+    }
     const superAdmin = await this.usersService.findOne(superAdminUsername)
     if (!superAdmin) {
-      const hashedPassword = await bcrypt.hash(superAdminPassword, 10)
       const SignupDto: SignupDto = {
         username: superAdminUsername,
-        password: hashedPassword,
+        password: superAdminPassword,
       }
       const user = await this.usersService.create({
         ...SignupDto

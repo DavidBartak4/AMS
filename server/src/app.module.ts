@@ -6,6 +6,8 @@ import { AppService } from "./app.service"
 import { MediaModule } from "./media/media.module"
 import { AttributesModule } from "./attributes/attributes.module"
 import { RoomsModule } from "./rooms/rooms.module"
+import { BookingModule } from "./bookings/bookings.module"
+import { ConfigurationModule } from "./configuration/configuration.module"
 
 @Module({
   imports: [
@@ -14,7 +16,9 @@ import { RoomsModule } from "./rooms/rooms.module"
     UsersModule,
     MediaModule,
     AttributesModule,
-    RoomsModule
+    RoomsModule,
+    BookingModule,
+    ConfigurationModule
   ],
   providers: [AppService],
 })

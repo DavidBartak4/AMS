@@ -11,12 +11,11 @@ export class AuthService {
 
   async signup(dto: SignupDto) {
     const { username, password } = dto
-    const hashedPassword = await bcrypt.hash(password, 10)
     const existingUser = await this.usersService.findOne(username)
     if (existingUser) {
       throw new ConflictException("Username is already taken")
     }
-    const user = await this.usersService.create({ username: username, password: hashedPassword })
+    const user = await this.usersService.create({ username: username, password: password })
     const token = this.generateToken(user)
     return {
       token: token.access_token,

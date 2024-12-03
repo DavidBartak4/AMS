@@ -6,6 +6,7 @@ import { MediaParamsDto } from "./dto/media"
 import { JwtAuthGuard } from "src/auth/guards/jwt.guard"
 import { RolesGuard } from "src/auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
+import { File } from "multer"
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller("media")
@@ -15,7 +16,7 @@ export class MediaController {
   @Post()
   @Roles("super-admin", "admin")
   @UseInterceptors(FileInterceptor("file"))
-  async uploadMedia(@UploadedFile() file: Express.MulterFile) {
+  async uploadMedia(@UploadedFile() file: File) {
     if (!file) {
       throw new BadRequestException("No file to upload")
     }

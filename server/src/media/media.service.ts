@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
+import { File } from "multer"
 
 @Injectable()
 export class MediaService {
@@ -15,7 +16,7 @@ export class MediaService {
     })
   }
 
-  async uploadMediaInstance(file: Express.MulterFile) {
+  async uploadMediaInstance(file: File) {
     const self = this
     return new Promise(function (resolve, reject) {
       const uploadStream = self.bucket.openUploadStream(file.originalname, {
