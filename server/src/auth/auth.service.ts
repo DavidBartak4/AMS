@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common"
@@ -8,6 +10,7 @@ import { UsersService } from "../users/users.service"
 import { SignupDto } from "./dto/signup.dto"
 import { LoginDto } from "./dto/login.dto"
 import * as bcrypt from "bcryptjs"
+import BaseResponse from "src/utils/BaseRespone"
 
 @Injectable()
 export class AuthService {
@@ -40,16 +43,20 @@ export class AuthService {
     const { username, password } = dto
     const user = await this.usersService.findOne(username)
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException("Invalid credentials")
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.UNAUTHORIZED, // 401 Unauthorized
+          message: "Username or password is wrong",
+        },
+        HttpStatus.UNAUTHORIZED, // Setting the status code here too
+      )
     }
     const token = this.generateToken(user)
-    return {
-      token: token.access_token,
-      user: {
-        _id: user._id,
-        username: user.username,
-      },
+    const result = {
+      user: user,
+      accessToken: token,
     }
+    return BaseResponse.success(result)
   }
 
   generateToken(user: any) {

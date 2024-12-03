@@ -8,8 +8,8 @@ export class AppService implements OnModuleInit {
   constructor(private readonly usersService: UsersService) {}
 
   async onModuleInit() {
-    const superAdminUsername = process.env.SUPER_ADMIN_USERNAME
-    const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD
+    const superAdminUsername = "super_admin"
+    const superAdminPassword = "12345678"
     if (!superAdminUsername || !superAdminPassword) {
       throw new error(
         "super admin .env default login details are not specified",
