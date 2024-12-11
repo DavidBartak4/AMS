@@ -1,10 +1,10 @@
-import {
-  IsString,
-  IsMongoId,
-  IsOptional,
-  MinLength,
-  MaxLength,
-} from "class-validator"
+import { IsString, IsOptional, MinLength, MaxLength, IsMongoId } from "class-validator"
+
+export class PatchAttributeParamsDto {
+  @IsString()
+  @IsMongoId()
+  attributeId: string
+}
 
 export class PatchAttributeBodyDto {
   @IsOptional()
@@ -17,9 +17,4 @@ export class PatchAttributeBodyDto {
   @IsString()
   @MaxLength(1000)
   description?: string
-
-  @IsOptional()
-  @IsString()
-  @IsMongoId()
-  imageId?: string
 }

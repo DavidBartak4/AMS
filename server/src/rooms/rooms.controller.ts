@@ -21,6 +21,7 @@ import { RoomParamsDto } from "./dto/room.dto"
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
+  /*
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("super-admin", "admin")
@@ -54,4 +55,5 @@ export class RoomsController {
   deleteRoom(@Param(new ValidationPipe()) params: RoomParamsDto) {
     return this.roomsService.deleteRoom(params.roomId)
   }
+  */
 }

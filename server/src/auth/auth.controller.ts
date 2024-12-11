@@ -3,7 +3,7 @@ import { AuthService } from "./auth.service"
 import { SignupDto } from "./dto/signup.dto"
 import { LoginDto } from "./dto/login.dto"
 import { RolesGuard } from "./guards/roles.guard"
-import { Roles } from "./decorators/roles.decorator"
+import { Roles } from "../auth/decorators/roles.decorator"
 import { JwtAuthGuard } from "./guards/jwt.guard"
 
 @Controller()

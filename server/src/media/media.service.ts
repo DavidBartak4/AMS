@@ -1,10 +1,7 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common"
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
 import { File } from "multer"
+import { Media, MediaDocument } from "./schemas/media.schema"
 
 @Injectable()
 export class MediaService {
@@ -20,23 +17,18 @@ export class MediaService {
     })
   }
 
-  async uploadMediaInstance(file: File) {
+  async createMedia(file :File): Promise<Media> {
     const self = this
     return new Promise(function (resolve, reject) {
-      const uploadStream = self.bucket.openUploadStream(file.originalname, {
-        contentType: file.mimetype,
-      })
+      const uploadStream = self.bucket.openUploadStream(file.originalname, { contentType: file.mimetype })
       uploadStream.end(file.buffer)
       uploadStream.on("finish", function () {
-        try {
-          resolve({
-            _id: uploadStream.id,
-            filename: file.originalname,
-            contentType: file.mimetype,
-          })
-        } catch (error) {
-          reject(error)
+        const media: Media = {
+          _id: new ObjectId(uploadStream.id),
+          filename: file.originalname,
+          contentType: file.mimetype,
         }
+        resolve(media)
       })
       uploadStream.on("error", function (error) {
         reject(error)
@@ -44,8 +36,8 @@ export class MediaService {
     })
   }
 
-  async getMediaFile(id: string) {
-    const objectId = new ObjectId(id)
+  async getMediaStream(mediaId: string) {
+    const objectId = new ObjectId(mediaId)
     const file = await this.bucket.find({ _id: objectId }).toArray()
     if (file.length === 0) {
       throw new NotFoundException("File not found")
@@ -58,34 +50,9 @@ export class MediaService {
     }
   }
 
-  async doesMediaExist(id: string) {
+  async deleteMedia(mediaId: string) {
     try {
-      const objectId = new ObjectId(id)
-      const file = await this.bucket.find({ _id: objectId }).toArray()
-      return file.length > 0
-    } catch (error) {
-      return false
-    }
-  }
-
-  async getMedia() {
-    try {
-      const files = await this.bucket.find().toArray()
-      return files.map((file) => ({
-        _id: file._id,
-        filename: file.filename,
-        contentType: file.contentType,
-        uploadDate: file.uploadDate,
-        length: file.length,
-      }))
-    } catch (error) {
-      throw new BadRequestException("Could not list media files")
-    }
-  }
-
-  async deleteMediaInstance(id: string) {
-    try {
-      const objectId = new ObjectId(id)
+      const objectId = new ObjectId(mediaId)
       await this.bucket.delete(objectId)
       return
     } catch (error) {

@@ -1,8 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { Document } from "mongoose"
 
-export type ConfigDocument = Configuration & Document
-
 @Schema()
 export class Configuration {
   @Prop({ required: false, default: null })
@@ -18,4 +16,5 @@ export class Configuration {
   mailPassword: string
 }
 
+export type ConfigurationDocument = Configuration & Document
 export const ConfigurationSchema = SchemaFactory.createForClass(Configuration)

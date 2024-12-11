@@ -1,72 +1,56 @@
-import {
-  ConflictException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from "@nestjs/common"
+import { ConflictException, Injectable, UnauthorizedException} from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
 import { UsersService } from "../users/users.service"
 import { SignupDto } from "./dto/signup.dto"
 import { LoginDto } from "./dto/login.dto"
 import * as bcrypt from "bcryptjs"
-import BaseResponse from "src/utils/BaseRespone"
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) {}
 
   async signup(dto: SignupDto) {
     const { username, password } = dto
-    const existingUser = await this.usersService.findOne(username)
+    const existingUser = await this.usersService.findUserByUsername(username)
     if (existingUser) {
       throw new ConflictException("Username is already taken")
     }
-    const user = await this.usersService.create({
+    const user = await this.usersService.createUser({
       username: username,
       password: password,
     })
     const token = this.generateToken(user)
     return {
-      token: token.access_token,
       user: {
         _id: user._id,
-        username: user.username,
+        username: user.username
       },
+      access_token: token
     }
   }
 
   async login(dto: LoginDto) {
     const { username, password } = dto
-    const user = await this.usersService.findOne(username)
+    const user = await this.usersService.findUserByUsername(username)
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.UNAUTHORIZED, // 401 Unauthorized
-          message: "Username or password is wrong",
-        },
-        HttpStatus.UNAUTHORIZED, // Setting the status code here too
-      )
+      throw new UnauthorizedException("invalid credentials")
     }
     const token = this.generateToken(user)
-    const result = {
-      user: user,
-      accessToken: token,
+    return {
+      user: {
+        _id: user._id,
+        username: user.username
+      },
+      access_token: token
     }
-    return BaseResponse.success(result)
   }
 
-  generateToken(user: any) {
+  private generateToken(user: any) {
     const payload = {
       sub: user._id,
       username: user.username,
       roles: user.roles,
     }
-    return {
-      access_token: this.jwtService.sign(payload),
-    }
+    return this.jwtService.sign(payload)
   }
 }

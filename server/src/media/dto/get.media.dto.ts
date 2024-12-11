@@ -1,6 +1,6 @@
 import { IsString, IsMongoId } from "class-validator"
 
-export class MediaParamsDto {
+export class GetMediaParamsDto {
   @IsString()
   @IsMongoId()
   mediaId: string

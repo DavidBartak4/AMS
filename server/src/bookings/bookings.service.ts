@@ -23,6 +23,7 @@ export class BookingService {
     @InjectConnection() private readonly connection: Connection,
   ) {}
 
+  /*
   async createBooking(dto: PostBookingBodyDto) {
     await this.roomsService.getRoom(dto.roomId)
     const bookingCode = this.generateBookingCode()
@@ -119,4 +120,5 @@ export class BookingService {
     if (!result) throw new NotFoundException("Booking not found")
     return { message: "Booking successfully deleted" }
   }
+  */
 }

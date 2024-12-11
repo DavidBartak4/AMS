@@ -13,6 +13,7 @@ export class RoomsService {
     private readonly mediaService: MediaService,
   ) {}
 
+  /*
   private async validateMediaIds(images: string[]) {
     for (const mediaId of images) {
       const exists = await this.mediaService.doesMediaExist(mediaId)
@@ -59,4 +60,5 @@ export class RoomsService {
       throw new NotFoundException(`Room with ID ${roomId} not found`)
     }
   }
+  */
 }

@@ -23,6 +23,7 @@ import { RoomParamsDto } from "src/rooms/dto/room.dto"
 export class BookingsController {
   constructor(private readonly bookingsService: BookingService) {}
 
+  /*
   @Post()
   async createBooking(@Body() body: PostBookingBodyDto) {
     return await this.bookingsService.createBooking(body)
@@ -73,4 +74,5 @@ export class BookingsController {
   async deleteBooking(@Param(new ValidationPipe()) params: BookingParamsDto) {
     return await this.bookingsService.deleteBooking(params.bookingId)
   }
+  */
 }

@@ -1,56 +1,48 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common"
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { PatchMailConfigurationBodyDto } from "./dto/patch.mailConfiguration.dto"
-import { Configuration, ConfigDocument } from "./schemas/configuration.schema"
+import { Configuration, ConfigurationDocument } from "./schemas/configuration.schema"
 import * as nodeMailer from "nodemailer"
 
 @Injectable()
 export class ConfigurationService {
-  constructor(
-    @InjectModel(Configuration.name)
-    private readonly configurationModel: Model<ConfigDocument>,
-  ) {}
+  constructor(@InjectModel(Configuration.name) private readonly configurationModel: Model<ConfigurationDocument>) {}
 
   async getConfiguration() {
-    const config = await this.configurationModel.findOne()
-    if (!config) throw new NotFoundException("Configuration not found")
-    return config
+    const configuration = await this.configurationModel.findOne()
+    if (!configuration) { throw new NotFoundException("Configuration not found") }
+    return configuration
   }
 
   async patchMailConfiguration(dto: PatchMailConfigurationBodyDto) {
-    await this.validateMailConfiguration(dto)
-    const config = await this.configurationModel.findOneAndUpdate({}, dto, {
-      new: true,
-      upsert: true,
-    })
-    if (!config) throw new NotFoundException("Configuration not found")
+    if (dto.mailUsername && dto.mailPassword) {
+      await this.validateMailConfiguration(dto)
+    }
+    const config = await this.configurationModel.findOneAndUpdate({}, dto, { new: true, upsert: true })
+    if (!config) { throw new NotFoundException("Configuration not found") }
     return config
   }
 
   private async validateMailConfiguration(dto: PatchMailConfigurationBodyDto) {
-    const { mailHost, mailPort, mailUsername, mailPassword } = dto
-    if (!mailHost || !mailUsername || !mailPassword) {
-      throw new BadRequestException("Incomplete mail configuration")
-    }
+    let configuration
+    try {
+      configuration = await this.getConfiguration()
+    } catch (err) {}
     try {
       const transporter = nodeMailer.createTransport({
-        host: mailHost,
-        port: mailPort || 587,
-        secure: mailPort === 465,
-        auth: {
-          user: mailUsername,
-          pass: mailPassword,
+        host: dto.mailHost || configuration && configuration.mailHost,
+        port: dto.mailPort || 587,
+        secure: dto.mailPort === 465,
+        auth: { 
+          user: dto.mailUsername || configuration && configuration.mailUsername, 
+          pass: dto.mailPassword || configuration && configuration.mailPassword
         },
-        connectionTimeout: 10000,
+        connectionTimeout: 3000,
       })
       await transporter.verify()
     } catch (error) {
-      throw new BadRequestException("Invalid mail credentials or configuration")
+      throw new BadRequestException("Mail credentials verification failed.")
     }
   }
 }
