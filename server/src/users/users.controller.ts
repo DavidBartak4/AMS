@@ -1,11 +1,11 @@
-import { Controller, Get, Param, UseGuards, ValidationPipe, Req, Delete, Query } from "@nestjs/common"
+import { Controller, Get, Param, UseGuards, ValidationPipe, Req, Delete, Query, Body } from "@nestjs/common"
 import { JwtAuthGuard } from "../auth/guards/jwt.guard"
 import { UsersService } from "./users.service"
 import { GetUserParamsDto } from "./dto/get.user.dto"
 import { RolesGuard } from "../auth/guards/roles.guard"
 import { Roles } from "../auth/decorators/roles.decorator"
 import { DeleteUserParamsDto } from "./dto/delete.user.dto"
-import { GetAdminsQueryDto } from "./dto/get.admins.dto"
+import { GetAdminsBodyDto, GetAdminsQueryDto } from "./dto/get.admins.dto"
 
 @Controller("users")
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -20,8 +20,8 @@ export class UsersController {
 
   @Get("admins")
   @Roles("super-admin")
-  getAdmins(@Query(new ValidationPipe({ transform: true })) query: GetAdminsQueryDto) {
-    return this.usersService.getAdmins(query)
+  getAdmins(@Query(new ValidationPipe({ transform: true })) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto) {
+    return this.usersService.getAdmins(query, body)
   }
 
   @Get(":userId")

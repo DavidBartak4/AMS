@@ -50,10 +50,14 @@ export class UsersService {
     return user
   }
 
-  async getAdmins(query) {
+  async getAdmins(query, body) {
     const filter: any = { roles: { $in: ["admin", "super-admin"] } }
-    if (query.username) {
-      filter.username = query.username
+    if (body.username) {
+      if (!body.partial) {
+        filter.username = body.username
+      } else {
+        filter.username = { $regex: body.username, $options: "i" }
+      }
     }
     const options = {
       page: query.page || 1,
