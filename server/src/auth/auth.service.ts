@@ -1,13 +1,27 @@
-import { ConflictException, Injectable, UnauthorizedException} from "@nestjs/common"
+import { ConflictException, Injectable, OnModuleInit, UnauthorizedException} from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
 import { UsersService } from "../users/users.service"
 import { SignupDto } from "./dto/signup.dto"
 import { LoginDto } from "./dto/login.dto"
 import * as bcrypt from "bcryptjs"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { Auth, AuthDocument } from "./schemas/auth.schema"
+import { randomBytes } from "crypto"
 
 @Injectable()
-export class AuthService {
-  constructor(private readonly usersService: UsersService, private readonly jwtService: JwtService) {}
+export class AuthService implements OnModuleInit {
+  jwtSecret: string
+  constructor(@InjectModel(Auth.name) private authModel: Model<AuthDocument>, private readonly usersService: UsersService, private readonly jwtService: JwtService) {}
+
+  async onModuleInit() {
+    let auth = await this.authModel.findOne()
+    if (!auth) {
+      auth = await this.authModel.create({ jwtSecret: randomBytes(32).toString("hex") })
+    }
+    this.jwtSecret = auth.jwtSecret
+    console.log(this.jwtService, 200)
+  }
 
   async signup(dto: SignupDto) {
     const { username, password } = dto
@@ -51,6 +65,6 @@ export class AuthService {
       username: user.username,
       roles: user.roles,
     }
-    return this.jwtService.sign(payload)
+    return this.jwtService.sign(payload, { secret: "123", expiresIn: "1h" }) //this.jwtSecret, expiresIn: "1h" })
   }
 }
