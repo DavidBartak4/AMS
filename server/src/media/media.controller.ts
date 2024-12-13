@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, UseInterceptors, UploadedFile, Body } from "@nestjs/common"
+import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, UseInterceptors, UploadedFile, Body, BadRequestException, Delete } from "@nestjs/common"
 import { Response } from "express"
 import { MediaService } from "./media.service"
 import { JwtAuthGuard } from "src/auth/guards/jwt.guard"
@@ -8,6 +8,7 @@ import { GetMediaParamsDto } from "./dto/get.media.dto"
 import { File } from "multer"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { CreateMediaBodyDto } from "./dto/create.media.dto"
+import { DeleteMediaParamsDto } from "./dto/delete.media.dto"
 
 @Controller("media")
 @Roles("super-admin", "admin")
@@ -19,6 +20,7 @@ export class MediaController {
   @UseInterceptors(FileInterceptor("file"))
   async createMedia(@UploadedFile() file: File, @Body() body: CreateMediaBodyDto) {
     if (body.type === "file") {
+      if (!file) { throw new BadRequestException("No file was provided for upload") }
       return await this.mediaService.createMediaByFile(file)
     } else {
       return await this.mediaService.createMediaByUrl(body.url)
@@ -34,5 +36,10 @@ export class MediaController {
   @Get(":mediaId/info")
   async getMediaInfo(@Param(new ValidationPipe()) params: GetMediaParamsDto) {
     return await this.mediaService.getMediaInfo(params.mediaId)
+  }
+
+  @Delete(":mediaId")
+  async deleteMedia(@Param(new ValidationPipe()) params: DeleteMediaParamsDto) {
+    return await this.mediaService.deleteMedia(params.mediaId)
   }
 }
