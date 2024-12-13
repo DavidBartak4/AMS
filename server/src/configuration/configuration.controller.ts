@@ -11,6 +11,7 @@ import { Roles } from "../auth/decorators/roles.decorator"
 export class ConfigurationController {
   constructor(private readonly configurationService: ConfigurationService) {}
 
+  /*
   @Get()
   async getConfiguration() {
     return await this.configurationService.getConfiguration()
@@ -20,4 +21,5 @@ export class ConfigurationController {
   async updateMailConfig(@Body() body: PatchMailConfigurationBodyDto) {
     return await this.configurationService.patchMailConfiguration(body)
   }
+  */
 }

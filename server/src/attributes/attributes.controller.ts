@@ -17,6 +17,7 @@ import { GetAdminsQueryDto } from "src/users/dto/get.admins.dto"
 @Roles("super-admin", "admin")
 export class AttributesController {
   constructor(private readonly attributesService: AttributesService) {}
+  /*
 
   @Post()
   @UseInterceptors(FileInterceptor("file"))
@@ -44,4 +45,5 @@ export class AttributesController {
   async deleteAttribute(@Param(new ValidationPipe()) params: DeleteAttributeParamsDto) {
     return this.attributesService.deleteAttribute(params.attributeId)
   }
+    */
 }

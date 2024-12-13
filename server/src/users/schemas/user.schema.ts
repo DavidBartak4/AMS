@@ -4,6 +4,8 @@ import * as mongoosePaginate from "mongoose-paginate-v2"
 
 @Schema({ timestamps: true })
 export class User {
+  _id: string
+
   @Prop({ unique: true, required: true, minlength: 3, maxlength: 20 })
   username: string
 

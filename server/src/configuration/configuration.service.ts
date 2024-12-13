@@ -9,6 +9,7 @@ import * as nodeMailer from "nodemailer"
 export class ConfigurationService {
   constructor(@InjectModel(Configuration.name) private readonly configurationModel: Model<ConfigurationDocument>) {}
 
+  /*
   async getConfiguration() {
     const configuration = await this.configurationModel.findOne()
     if (!configuration) { throw new NotFoundException("Configuration not found") }
@@ -45,4 +46,5 @@ export class ConfigurationService {
       throw new BadRequestException("Mail credentials verification failed.")
     }
   }
+  */
 }

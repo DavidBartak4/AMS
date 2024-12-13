@@ -1,4 +1,4 @@
-import { IsOptional, IsIn, IsString, IsBoolean } from "class-validator"
+import { IsOptional, IsIn, IsString, IsBoolean, Min } from "class-validator"
 import { Type } from "class-transformer"
 
 export class GetAdminsQueryDto {
@@ -9,6 +9,7 @@ export class GetAdminsQueryDto {
 
   @IsOptional()
   @Type(function() { return Number })
+  @Min(1)
   page?: number
 }
 

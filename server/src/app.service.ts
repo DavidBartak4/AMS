@@ -1,22 +1,19 @@
 import { Injectable, OnModuleInit } from "@nestjs/common"
+import { AuthService } from "./auth/auth.service"
 import { UsersService } from "./users/users.service"
-import { SignupDto } from "./auth/dto/signup.dto"
+import { LoginBodyDto } from "./auth/dto/login.dto"
 
 @Injectable()
 export class AppService implements OnModuleInit {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService, private readonly authService: AuthService) {}
 
   async onModuleInit() {
-    const superAdminUsername = "super_admin"
-    const superAdminPassword = "12345678"
-    const superAdmin = await this.usersService.findUserByUsername(superAdminUsername)
-    if (!superAdmin) {
-      const SignupDto: SignupDto = {
-        username: superAdminUsername,
-        password: superAdminPassword,
-      }
-      const user = await this.usersService.createUser({...SignupDto})
-      await this.usersService.addRoleToUser(user._id.toString(), "super-admin")
+    const body: LoginBodyDto = { username: "super_admin", password: "12345678"}
+    try {
+      await this.usersService.findUser({ username: body.username })
+    } catch (err) {
+      const signup = await this.authService.signup(body)
+      await this.usersService.addRoleToUser(signup.user._id.toString(), "super-admin")
     }
   }
 }

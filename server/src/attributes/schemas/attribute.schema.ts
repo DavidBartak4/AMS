@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { Document, PaginateModel } from "mongoose"
 import * as mongoosePaginate from "mongoose-paginate-v2"
+import { Media } from "src/media/schemas/media.schema"
 
 @Schema({ timestamps: true })
 export class Attribute {
@@ -10,8 +11,8 @@ export class Attribute {
   @Prop({ maxlength: 1000 })
   description: string
 
-  @Prop()
-  imageId: string
+  @Prop({ required: false })
+  image: Media
 }
 
 export type AttributeDocument = Attribute & Document

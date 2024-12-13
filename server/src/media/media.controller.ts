@@ -12,9 +12,11 @@ import { Roles } from "../auth/decorators/roles.decorator"
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
+  /*
   @Get(":mediaId")
   async getMediaStream(@Param(new ValidationPipe()) params: GetMediaParamsDto, @Res() res: Response) {
     const fileStream = await this.mediaService.getMediaStream(params.mediaId)
     fileStream.pipe(res)
   }
+    */
 }

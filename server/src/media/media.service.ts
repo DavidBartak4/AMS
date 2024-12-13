@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
 import { File } from "multer"
-import { Media, MediaDocument } from "./schemas/media.schema"
+import { Media } from "./schemas/media.schema"
 
 @Injectable()
 export class MediaService {
@@ -16,8 +16,9 @@ export class MediaService {
       self.bucket = new GridFSBucket(db, { bucketName: "media" })
     })
   }
+  /*
 
-  async createMedia(file :File): Promise<Media> {
+  async createMedia(file :File) {
     const self = this
     return new Promise(function (resolve, reject) {
       const uploadStream = self.bucket.openUploadStream(file.originalname, { contentType: file.mimetype })
@@ -26,7 +27,7 @@ export class MediaService {
         const media: Media = {
           _id: new ObjectId(uploadStream.id),
           filename: file.originalname,
-          contentType: file.mimetype,
+          contentType: file.mimetype
         }
         resolve(media)
       })
@@ -34,6 +35,10 @@ export class MediaService {
         reject(error)
       })
     })
+  }
+
+  getMediaStreamUrl(imageId) {
+    return `http://localhost:3000/media/${imageId}`
   }
 
   async getMediaStream(mediaId: string) {
@@ -64,4 +69,5 @@ export class MediaService {
       throw error
     }
   }
+  */
 }

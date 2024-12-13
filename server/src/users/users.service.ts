@@ -1,83 +1,73 @@
-import { NotFoundException, Injectable } from "@nestjs/common"
+import { NotFoundException, Injectable, BadRequestException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { User, UserModel } from "./schemas/user.schema"
-import { PostUserBodyDto } from "./dto/post.user.dto"
-import * as bcrypt from "bcryptjs"
+import { CreateUserBodyDto } from "./dto/create.user.dto"
+import { GetAdminsBodyDto, GetAdminsQueryDto } from "./dto/get.admins.dto"
+import { UpdateUserBodyDto } from "./dto/patch.user.dto"
+import { PaginateResult } from "mongoose"
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: UserModel) {}
+  constructor(@InjectModel(User.name) private readonly userModel: UserModel) {}
 
-  async createUser(dto: PostUserBodyDto) {
-    dto.password = await bcrypt.hash(dto.password, 10)
-    return await this.userModel.create(dto)
+  async createUser(body :CreateUserBodyDto): Promise<User> {
+    return await this.userModel.create(body)
   }
 
-  async findUserByUsername(username: string) {
-    return await this.userModel.findOne({ username }).exec()
-  }
-
-  async deleteUser(userId: string) {
-    const user = await this.userModel.findById(userId).exec()
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} does not exist`)
-    }
-    return await this.userModel.findByIdAndDelete(userId).exec()
-  }
-
-  async addRoleToUser(userId: string, role: string) {
-    const user = await this.userModel.findById(userId).exec()
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`)
-    }
-    if (!user.roles.includes(role)) {
-      user.roles.push(role)
-      await user.save()
-    }
-    return user
-  }
-
-  async removeRoleFromUser(userId: string, role: string) {
-    const user = await this.userModel.findById(userId).exec()
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`)
-    }
-    const roleIndex = user.roles.indexOf(role)
-    if (roleIndex !== -1) {
-      user.roles.splice(roleIndex, 1)
-      await user.save()
-    }
-    return user
-  }
-
-  async getAdmins(query, body) {
+  async getAdmins(body: GetAdminsBodyDto,query: GetAdminsQueryDto, select?: string): Promise<PaginateResult<User>> {
+    select = select || ""
     const filter: any = { roles: { $in: ["admin", "super-admin"] } }
     if (body.username) {
-      if (!body.partial) {
-        filter.username = body.username
-      } else {
-        filter.username = { $regex: body.username, $options: "i" }
-      }
+      filter.username = body.partial ? { $regex: body.username, $options: "i" } : body.username
     }
-    const options = {
-      page: query.page || 1,
-      limit: query.limit || 10,
-    }
-    const adminsPage = await this.userModel.paginate(filter, options)
-    if (adminsPage.totalPages > options.page) { throw new NotFoundException("page does not exist")}
+    const adminsPage = await this.userModel.paginate(filter, { page: query.page, limit: query.limit, select: select})
+    if (adminsPage.totalPages > query.page) { throw new NotFoundException("Page not found")}
     return adminsPage
   }
 
-  async getUserRoles(userId: string) {
-    const user = await this.userModel.findById(userId).exec()
-    return user ? user.roles : []
+  async getUser(userId: string, select?: string): Promise<User> {
+    select = select || ""
+    const user = await this.userModel.findById(userId).select(select).exec()
+    if (!user) { throw new NotFoundException(`User with ID ${userId} not found`) }
+    return user
   }
 
-  async getUser(userId: string) {
-    const user = await this.userModel.findById(userId).select("_id username").exec()
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`)
-    }
+  async findUser(properties: Object, select?: string): Promise<User> {
+    select = select || ""
+    const user = await this.userModel.findOne(properties).select(select).exec()
+    if (!user) { throw new NotFoundException(`User not found`) }
     return user
+  }
+
+  async updateUser(userId: string, dto: UpdateUserBodyDto): Promise<User> {
+    await this.getUser(userId)
+    return await this.userModel.findByIdAndUpdate(userId, dto).exec()
+  }
+
+  async deleteUser(userId: string) {
+    await this.getUser(userId)
+    await this.userModel.findByIdAndDelete(userId).exec()
+    return
+  }
+
+  async addRoleToUser(userId: string, role: string): Promise<User> {
+    const user = await this.getUser(userId, "roles")
+    if (user.roles.includes(role)) { throw new BadRequestException(`User already has the role ${role}`) }
+    user.roles.push(role)
+    await this.userModel.findByIdAndUpdate(userId, user).exec()
+    return
+  }
+
+  async removeRoleFromUser(userId: string, role: string): Promise<User> {
+    const user = await this.getUser(userId, "roles")
+    if (!user.roles.includes(role)) { throw new BadRequestException(`User does not have the role ${role}`) }
+    user.roles = user.roles.filter(function(userRole) { return userRole !== role })
+    await this.userModel.findByIdAndUpdate(userId, user).exec()
+    return
+  }
+
+  async getUserRoles(userId: string): Promise<string[]> {
+    const user = await this.getUser(userId, "roles")
+    return user.roles
   }
 }
