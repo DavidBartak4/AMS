@@ -6,7 +6,7 @@ export class Media {
     _id: Types.ObjectId
 
     @Prop({ required: true, enum: ["url", "file"]})
-    type: "url" | "file"
+    type: string
 
     @Prop()
     filename?: string

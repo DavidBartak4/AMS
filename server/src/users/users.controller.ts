@@ -14,7 +14,7 @@ export class UsersController {
 
   @Get("admins")
   @Roles("super-admin", "admin")
-  getAdmins(@Query(new ValidationPipe({ transform: true })) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto, @Req() req) {
+  getAdmins(@Query(new ValidationPipe()) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto, @Req() req) {
     let select = "-password"
     if (!req.user.roles.includes("super-admin")) { select = `${select} -roles` }
     return this.usersService.getAdmins(body, query, select)

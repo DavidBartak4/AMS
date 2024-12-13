@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, Body, UseInterceptors, UploadedFile } from "@nestjs/common"
+import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, UseInterceptors, UploadedFile, Body } from "@nestjs/common"
 import { Response } from "express"
 import { MediaService } from "./media.service"
 import { JwtAuthGuard } from "src/auth/guards/jwt.guard"
@@ -7,28 +7,28 @@ import { Roles } from "../auth/decorators/roles.decorator"
 import { GetMediaParamsDto } from "./dto/get.media.dto"
 import { File } from "multer"
 import { FileInterceptor } from "@nestjs/platform-express"
+import { CreateMediaBodyDto } from "./dto/create.media.dto"
 
 @Controller("media")
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles("super-admin", "admin")
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
-  @Post("/upload/url")
-  async createMediaByUrl(@Body() body: any) {
-    return await this.mediaService.createMediaByUrl(body)
-  }
-
-  @Post("/upload/file")
+  @Post()
   @UseInterceptors(FileInterceptor("file"))
-  async createMediaByFile(@UploadedFile() file: File) {
-    return await this.mediaService.createMediaByFile(file)
+  async createMedia(@UploadedFile() file: File, @Body() body: CreateMediaBodyDto) {
+    if (body.type === "file") {
+      return await this.mediaService.createMediaByFile(file)
+    } else {
+      return await this.mediaService.createMediaByUrl(body.url)
+    }
   }
 
   @Get(":mediaId/stream")
   async getMediaStream(@Param(new ValidationPipe()) params: GetMediaParamsDto, @Res() res: Response) {
-    const fileStream = await this.mediaService.getMediaStream(params.mediaId)
-    fileStream.pipe(res)
+    const stream = await this.mediaService.getMediaStream(params.mediaId)
+    stream.pipe(res)
   }
 
   @Get(":mediaId/info")
