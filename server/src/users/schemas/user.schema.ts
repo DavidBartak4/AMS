@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import { Document, PaginateModel  } from "mongoose"
+import { Document, PaginateModel, Types } from "mongoose"
 import * as mongoosePaginate from "mongoose-paginate-v2"
 
 @Schema({ timestamps: true })
 export class User {
-  _id: string
+  _id: Types.ObjectId
 
   @Prop({ unique: true, required: true, minlength: 3, maxlength: 20 })
   username: string

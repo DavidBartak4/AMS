@@ -12,12 +12,6 @@ import { DeleteUserParamsDto } from "./dto/delete.user.dto"
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get("user/profile")
-  @Roles("super-admin", "admin")
-  getProfile(@Req() req) {
-    return this.usersService.getUser(req.user.id, "-password")
-  }
-
   @Get("admins")
   @Roles("super-admin", "admin")
   getAdmins(@Query(new ValidationPipe({ transform: true })) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto, @Req() req) {

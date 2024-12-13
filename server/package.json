@@ -37,7 +37,7 @@
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.11.16",
-    "mongodb": "^6.11.0",
+    "mongodb": "^6.10.0",
     "mongoose": "^8.8.1",
     "mongoose-paginate-v2": "^1.8.5",
     "nodemailer": "^6.9.16",

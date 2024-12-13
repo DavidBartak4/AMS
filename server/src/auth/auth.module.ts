@@ -21,9 +21,7 @@ import { randomBytes } from "crypto"
     provide: JwtService,
     useFactory: async function(authModel: Model<any>) {
       let auth = await authModel.findOne().exec()
-      if (!auth) {
-        auth = await authModel.create({ jwtSecret: randomBytes(32).toString("hex") })
-      }
+      if (!auth) { auth = await authModel.create({ jwtSecret: randomBytes(32).toString("hex") }) }
       return new JwtService({ secret: auth.jwtSecret, signOptions: { expiresIn: "1h" } })
     },
     inject: [getModelToken(Auth.name)]

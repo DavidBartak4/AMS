@@ -1,17 +1,21 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import { Document } from "mongoose"
-import { ObjectId } from "mongodb"
+import { Document, Types } from "mongoose"
 
 @Schema({ collection: "media" })
 export class Media {
+    _id: Types.ObjectId
+
+    @Prop({ required: true, enum: ["url", "file"]})
+    type: "url" | "file"
+
     @Prop()
-    _id?: ObjectId
+    filename?: string
 
-    @Prop({ required: true })
-    filename: string
+    @Prop()
+    url?: string
 
-    @Prop({ required: true })
-    contentType: string
+    @Prop()
+    contentType?: string
 }
 
 export type MediaDocument = Media & Document

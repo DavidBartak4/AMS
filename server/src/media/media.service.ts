@@ -1,73 +1,72 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
-import { MongoClient, GridFSBucket, ObjectId } from "mongodb"
-import { File } from "multer"
+import { Injectable, Inject, BadRequestException, NotFoundException } from "@nestjs/common"
+import { GridFSBucket, GridFSBucketReadStream, ObjectId } from "mongodb"
 import { Media } from "./schemas/media.schema"
+import { CreateMediaByUrlBodyDto } from "./dto/create.media.dto"
+import { getConnectionToken } from "@nestjs/mongoose"
+import { Connection } from "mongoose"
+import { File } from "multer"
 
 @Injectable()
 export class MediaService {
-  private client: MongoClient
   private bucket: GridFSBucket
 
-  constructor() {
-    const self = this
-    this.client = new MongoClient("mongodb://localhost/AMS")
-    this.client.connect().then(function () {
-      const db = self.client.db("AMS")
-      self.bucket = new GridFSBucket(db, { bucketName: "media" })
-    })
+  constructor(@Inject(getConnectionToken()) private readonly connection: Connection) {
+    const db = this.connection.db
+    this.bucket = new GridFSBucket(db, { bucketName: "media" })
   }
-  /*
 
-  async createMedia(file :File) {
-    const self = this
-    return new Promise(function (resolve, reject) {
-      const uploadStream = self.bucket.openUploadStream(file.originalname, { contentType: file.mimetype })
+  async createMediaByFile(file: File) {
+    if (!file || !file.originalname || !file.mimetype || !file.buffer) { throw new BadRequestException("Invalid file data") }
+    return new Promise<Media>(function (resolve, reject) {
+      const uploadStream = this.bucket.openUploadStream(file.originalname, { contentType: file.mimetype })
       uploadStream.end(file.buffer)
       uploadStream.on("finish", function () {
         const media: Media = {
-          _id: new ObjectId(uploadStream.id),
+          _id: uploadStream.id,
+          type: "file",
           filename: file.originalname,
-          contentType: file.mimetype
+          contentType: file.mimetype,
         }
         resolve(media)
-      })
+      }.bind(this)) 
       uploadStream.on("error", function (error) {
-        reject(error)
-      })
-    })
+        reject(new BadRequestException(`File upload failed: ${error.message}`))
+      }.bind(this)) 
+    }.bind(this))
   }
 
-  getMediaStreamUrl(imageId) {
-    return `http://localhost:3000/media/${imageId}`
+  async createMediaByUrl(body: CreateMediaByUrlBodyDto): Promise<Media> {
+    const mediaCollection = this.connection.db.collection<Media>("media")
+    const media: Media = { _id: new ObjectId(), type: "url", url: body.url }
+    await mediaCollection.insertOne(media)
+    return media
   }
-
-  async getMediaStream(mediaId: string) {
+  
+  async getMediaStream(mediaId: string): Promise<GridFSBucketReadStream> {
     const objectId = new ObjectId(mediaId)
-    const file = await this.bucket.find({ _id: objectId }).toArray()
-    if (file.length === 0) {
-      throw new NotFoundException("File not found")
-    }
-    try {
-      const downloadStream = this.bucket.openDownloadStream(objectId)
-      return downloadStream
-    } catch (error) {
-      throw new BadRequestException("Error retrieving file")
-    }
+    const mediaCollection = this.connection.db.collection<Media>("media")
+    const media = await mediaCollection.findOne({ _id: objectId })
+    if (!media || media.type !== "file" || !media.filename) { throw new NotFoundException("File-based media not found") }
+    try { return this.bucket.openDownloadStream(objectId) } 
+    catch (error) { throw new BadRequestException(`Error retrieving file: ${error.message}`) }
   }
 
-  async deleteMedia(mediaId: string) {
-    try {
-      const objectId = new ObjectId(mediaId)
-      await this.bucket.delete(objectId)
-      return
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("File not found for id")) {
-          throw new NotFoundException("File not found")
-        }
-      }
-      throw error
-    }
+  async getMediaInfo(mediaId: string): Promise<Media> {
+    const objectId = new ObjectId(mediaId)
+    const mediaCollection = this.connection.db.collection<Media>("media")
+    const media = await mediaCollection.findOne({ _id: objectId })
+    if (!media) { throw new NotFoundException("Media not found") }
+    return media
   }
-  */
+
+  async deleteMedia(mediaId: string): Promise<void> {
+    const objectId = new ObjectId(mediaId)
+    const mediaCollection = this.connection.db.collection<Media>("media")
+    const media = await mediaCollection.findOne({ _id: objectId })
+    if (!media) { throw new NotFoundException("Media not found") }
+    try {
+      if (media.type === "file" && media.filename) { await this.bucket.delete(objectId) }
+      await mediaCollection.deleteOne({ _id: objectId })
+    } catch (error) { throw new BadRequestException(`Error deleting media: ${error.message}`) }
+  }
 }

@@ -2,11 +2,11 @@
 1. App
 2. Users
 3. Auth
+4. Configuration
 
 **TODO**
-1. Configuration
-2. Media
-3. Attributes
-4. Rooms
-5. Booking
-6. Email Design
+1. Media
+2. Attributes
+3. Rooms
+4. Booking
+5. Email Design

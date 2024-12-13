@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsInt, IsNotEmpty } from "class-validator"
 
-export class PatchMailConfigurationBodyDto {
+export class UpdateMailConfigurationBodyDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()

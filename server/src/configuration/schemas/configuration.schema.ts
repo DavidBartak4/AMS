@@ -3,16 +3,16 @@ import { Document } from "mongoose"
 
 @Schema()
 export class Configuration {
-  @Prop({ required: false, default: null })
+  @Prop()
   mailHost: string
 
-  @Prop({ required: false, default: null })
+  @Prop()
   mailPort: number
 
-  @Prop({ required: false, default: null })
+  @Prop()
   mailUsername: string
 
-  @Prop({ required: false, default: null })
+  @Prop()
   mailPassword: string
 }
 

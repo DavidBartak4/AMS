@@ -1,50 +1,49 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
-import { PatchMailConfigurationBodyDto } from "./dto/patch.mailConfiguration.dto"
 import { Configuration, ConfigurationDocument } from "./schemas/configuration.schema"
 import * as nodeMailer from "nodemailer"
+import { UpdateMailConfigurationBodyDto } from "./dto/update.mail.configuration.dto"
 
 @Injectable()
 export class ConfigurationService {
   constructor(@InjectModel(Configuration.name) private readonly configurationModel: Model<ConfigurationDocument>) {}
 
-  /*
-  async getConfiguration() {
+  async getConfiguration(): Promise<Configuration> {
     const configuration = await this.configurationModel.findOne()
     if (!configuration) { throw new NotFoundException("Configuration not found") }
     return configuration
   }
 
-  async patchMailConfiguration(dto: PatchMailConfigurationBodyDto) {
-    if (dto.mailUsername && dto.mailPassword) {
-      await this.validateMailConfiguration(dto)
+  async updateMailConfiguration(body: UpdateMailConfigurationBodyDto): Promise<Configuration> {
+    const configuration = await this.configurationModel.findOne()
+    body.mailUsername = body.mailUsername || configuration && configuration.mailUsername || undefined
+    body.mailPassword = body.mailPassword || configuration && configuration.mailPassword || undefined
+    if (body.mailPassword && body.mailUsername) {
+      await this.verifyMail({
+        mailHost: body.mailHost || configuration && configuration.mailHost || undefined,
+        mailPort: body.mailPort || configuration && configuration.mailPort || undefined,
+        mailUsername: body.mailUsername,
+        mailPassword: body.mailPassword
+      })
     }
-    const config = await this.configurationModel.findOneAndUpdate({}, dto, { new: true, upsert: true })
-    if (!config) { throw new NotFoundException("Configuration not found") }
-    return config
+    return await this.configurationModel.findOneAndUpdate({}, body, { new: true, upsert: true })
   }
 
-  private async validateMailConfiguration(dto: PatchMailConfigurationBodyDto) {
-    let configuration
+  private async verifyMail(mailConfiguration: UpdateMailConfigurationBodyDto): Promise<void> {
     try {
-      configuration = await this.getConfiguration()
-    } catch (err) {}
-    try {
-      const transporter = nodeMailer.createTransport({
-        host: dto.mailHost || configuration && configuration.mailHost,
-        port: dto.mailPort || 587,
-        secure: dto.mailPort === 465,
+      await nodeMailer.createTransport({
+        host: mailConfiguration.mailHost,
+        port: mailConfiguration.mailPort|| 587,
+        secure: mailConfiguration.mailPort === 465,
         auth: { 
-          user: dto.mailUsername || configuration && configuration.mailUsername, 
-          pass: dto.mailPassword || configuration && configuration.mailPassword
+          user: mailConfiguration.mailUsername, 
+          pass: mailConfiguration.mailPassword
         },
-        connectionTimeout: 3000,
-      })
-      await transporter.verify()
-    } catch (error) {
-      throw new BadRequestException("Mail credentials verification failed.")
+        connectionTimeout: 10000
+      }).verify()
+    } catch (err) {
+      throw new BadRequestException("Mail configuration verification failed")
     }
   }
-  */
 }
