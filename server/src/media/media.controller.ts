@@ -19,12 +19,7 @@ export class MediaController {
   @Post()
   @UseInterceptors(FileInterceptor("file"))
   async createMedia(@UploadedFile() file: File, @Body() body: CreateMediaBodyDto) {
-    if (body.type === "file") {
-      if (!file) { throw new BadRequestException("No file was provided for upload") }
-      return await this.mediaService.createMediaByFile(file)
-    } else {
-      return await this.mediaService.createMediaByUrl(body.url)
-    }
+    return await this.mediaService.createMedia({ file: file, ...body})
   }
 
   @Get(":mediaId/stream")

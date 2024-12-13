@@ -61,7 +61,7 @@ export class UsersService {
 
   async removeRoleFromUser(userId: string, role: string): Promise<User> {
     const user = await this.getUser(userId, "roles")
-    if (!user.roles.includes(role)) { throw new BadRequestException("User does not have this role") }
+    if (!user.roles.includes(role)) { throw new BadRequestException("User does not have  role") }
     user.roles = user.roles.filter(function(userRole) { return userRole !== role })
     await this.userModel.findByIdAndUpdate(userId, user).exec()
     return

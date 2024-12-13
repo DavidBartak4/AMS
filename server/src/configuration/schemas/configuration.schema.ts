@@ -4,16 +4,16 @@ import { Document } from "mongoose"
 @Schema()
 export class Configuration {
   @Prop()
-  mailHost: string
+  mailHost?: string
 
   @Prop()
-  mailPort: number
+  mailPort?: number
 
   @Prop()
-  mailUsername: string
+  mailUsername?: string
 
   @Prop()
-  mailPassword: string
+  mailPassword?: string
 }
 
 export type ConfigurationDocument = Configuration & Document

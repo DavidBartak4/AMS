@@ -4,7 +4,7 @@ import { Document } from "mongoose"
 @Schema()
 export class Auth {
   @Prop()
-  jwtSecret: string
+  jwtSecret?: string
 }
 
 export type AuthDocument = Auth & Document

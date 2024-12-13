@@ -6,6 +6,7 @@ import { File } from "multer"
 import { Media, MediaDocument } from "./schemas/media.schema"
 import { Model } from "mongoose"
 import { InjectModel } from "@nestjs/mongoose"
+import { CreateMediaBodyDto } from "./dto/create.media.dto"
 
 @Injectable()
 export class MediaService {
@@ -15,6 +16,16 @@ export class MediaService {
     this.bucket = new GridFSBucket(this.connection.db, {
       bucketName: "media",
     })
+  }
+
+  async createMedia(body: CreateMediaBodyDto & { file?: File }): Promise<Media> {
+    if (body.type === "url") {
+      return await this.createMediaByUrl(body.url)
+    }
+    if (body.type === "file") {
+      if (!body.file) { throw new BadRequestException("No file was provided for upload") }
+      return await this.createMediaByFile(body.file)
+    }
   }
 
   async createMediaByFile(file: File): Promise<Media> {

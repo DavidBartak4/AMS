@@ -1,4 +1,4 @@
-import { IsOptional, IsIn } from "class-validator"
+import { IsOptional, IsIn, Min } from "class-validator"
 import { Type } from "class-transformer"
 
 export class GetAttributesQueryDto {
@@ -9,5 +9,6 @@ export class GetAttributesQueryDto {
 
   @IsOptional()
   @Type(function() { return Number })
+  @Min(1)
   page?: number
 }

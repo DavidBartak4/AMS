@@ -9,10 +9,10 @@ export class Attribute {
   name: string
 
   @Prop({ maxlength: 1000 })
-  description: string
+  description?: string
 
-  @Prop({ required: false })
-  image: Media
+  @Prop()
+  imageId?: string
 }
 
 export type AttributeDocument = Attribute & Document
