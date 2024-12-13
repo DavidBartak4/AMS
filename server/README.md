@@ -3,10 +3,10 @@
 2. Users
 3. Auth
 4. Configuration
+5. Media
 
 **TODO**
-1. Media
-2. Attributes
-3. Rooms
-4. Booking
-5. Email Design
+1. Attributes
+2. Rooms
+3. Booking
+4. Email Design
