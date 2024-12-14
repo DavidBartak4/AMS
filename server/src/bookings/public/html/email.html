@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+    }
+    .container {
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    h1 {
+      color: #444;
+    }
+    .details {
+      margin-top: 20px;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Booking Confirmation</h1>
+    <p>Hello <strong>{{firstname}} {{lastname}}</strong>,</p>
+    <p>Your booking has been confirmed.</p>
+    <div class="details">
+      <p><strong>Booking Code:</strong> {{bookingCode}}</p>
+      <p><strong>Room Name:</strong> {{roomName}}</p>
+      <p><strong>Room Number:</strong> {{roomNumber}}</p>
+      <p><strong>Check-in:</strong> {{checkIn}}</p>
+      <p><strong>Check-out:</strong> {{checkOut}}</p>
+    </div>
+    <p>Thank you for choosing our service.</p>
+    <div class="footer">
+      <p>&copy; {{year}} Our Company. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

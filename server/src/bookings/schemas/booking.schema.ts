@@ -21,8 +21,8 @@ export class Booking {
   @Prop({ required: true })
   roomId: string
 
-  @Prop({ required: true })
-  email: string
+  @Prop()
+  email?: string
 
   @Prop({ required: true })
   checkIn: Date

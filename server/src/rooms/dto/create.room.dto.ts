@@ -1,6 +1,6 @@
 import { Transform, Type } from "class-transformer"
 import { IsString, MinLength, MaxLength, IsOptional, IsNumber, IsIn, Min, IsUrl, ValidateIf, IsMongoId } from "class-validator"
-import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
+import { IsCurrencyCode } from "src/common/decorators/currency.codes.decorator"
 
 export class CreatetRoomBodyDto {
   @IsString()

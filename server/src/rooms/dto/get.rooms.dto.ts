@@ -1,5 +1,5 @@
 import { IsOptional, IsIn, Min, IsNumber, MinLength, MaxLength, IsString, ValidateNested } from "class-validator"
-import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
+import { IsCurrencyCode } from "src/common/decorators/currency.codes.decorator"
 import { Type } from "class-transformer"
 import { IsRange } from "src/common/decorators/range.decorator"
 import { Range } from "src/common/types/range"

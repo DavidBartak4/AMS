@@ -1,0 +1,13 @@
+Hello {{firstname}} {{lastname}},
+
+Your booking has been confirmed.
+
+Booking Code: {{bookingCode}}
+Room Name: {{roomName}}
+Room Number: {{roomNumber}}
+Check-in: {{checkIn}}
+Check-out: {{checkOut}}
+
+Thank you for choosing our service.
+
+© {{year}} Our Company. All rights reserved.

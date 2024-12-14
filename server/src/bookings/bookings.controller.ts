@@ -1,66 +1,55 @@
-import { Body, Controller, Post } from "@nestjs/common"
+import { Body, Controller, Post, Req, UseGuards, Param, ValidationPipe, Get, Query, Patch, Delete } from "@nestjs/common"
 import { BookingService } from "./bookings.service"
 import { CreateBookingBodyDto } from "./dto/create.booking.dto"
+import { Roles } from "src/auth/decorators/roles.decorator"
+import { OptionalAuthGuard } from "src/auth/guards/auth.guard"
+import { JwtAuthGuard } from "src/auth/guards/jwt.guard"
+import { RolesGuard } from "src/auth/guards/roles.guard"
+import { GetBookingParamsDto } from "./dto/get.booking.dto"
+import { GetBookingsBodyDto, GetBookingsQueryDto } from "./dto/get.bookings.dto"
+import { UpdateBookingBodyDto, UpdateBookingParamsDto } from "./dto/update.booking.dto"
+import { DeleteBookingParamsDto } from "./dto/delete.booking.dto"
 
 @Controller("bookings")
 export class BookingsController {
   constructor(private readonly bookingsService: BookingService) {}
 
   @Post()
-  async createBooking(@Body() body: CreateBookingBodyDto) {
-    return await this.bookingsService.createBooking(body)
-  }
-}
-
-  /*
-  @Post()
-  async createBooking(@Body() body: PostBookingBodyDto) {
-    return await this.bookingsService.createBooking(body)
-  }
-
-  @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async getBookings() {
-    return await this.bookingsService.getBookings()
+  @Roles("admin", "super-admin")
+  @UseGuards(OptionalAuthGuard)
+  async createBooking(@Body() body: CreateBookingBodyDto, @Req() req) {
+    if (req.user && (req.user.roles.includes("admin") || req.user.roles.includes("super-admin"))) {
+      return await this.bookingsService.createBooking(body, body.sendBookingConfirmation)
+    } else {
+      return await this.bookingsService.createBooking(body, true)
+    }
   }
 
   @Get(":bookingId")
+  @Roles("admin", "super-admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async getBooking(@Param(new ValidationPipe()) params: BookingParamsDto) {
+  async getBooking(@Param(new ValidationPipe()) params: GetBookingParamsDto) {
     return await this.bookingsService.getBooking(params.bookingId)
   }
 
+  @Get()
+  @Roles("admin", "super-admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async getBookings(@Query() query: GetBookingsQueryDto, @Body() body: GetBookingsBodyDto) {
+    return await this.bookingsService.getBookings(query, body)
+  }
+
   @Patch(":bookingId")
+  @Roles("admin", "super-admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async patchBooking(
-    @Param(new ValidationPipe()) params: BookingParamsDto,
-    @Body() body: PatchBookingBodyDto,
-  ) {
-    return await this.bookingsService.patchBooking(params.bookingId, body)
-  }
-
-  @Get("rooms/:roomId/conflict")
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async checkBookingConflict(@Param(new ValidationPipe()) params: RoomParamsDto, @Body() body: GetBookingConflictBodyDto) {
-    console.log(body)
-    return await this.bookingsService.checkBookingConflict(params.roomId, body.checkIn, body.checkOut)
-  }
-
-  @Get("rooms/:roomId")
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async getBookingsByRoom(@Param(new ValidationPipe()) params: RoomParamsDto) {
-    return await this.bookingsService.getBookingsByRoom(params.roomId)
+  async updateBooking(@Param(new ValidationPipe()) params: UpdateBookingParamsDto, @Body() body: UpdateBookingBodyDto) {
+    return await this.bookingsService.updateBooking(params.bookingId, body)
   }
 
   @Delete(":bookingId")
+  @Roles("admin", "super-admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("super-admin", "admin")
-  async deleteBooking(@Param(new ValidationPipe()) params: BookingParamsDto) {
+  async deleteBooking(@Param(new ValidationPipe()) params: DeleteBookingParamsDto) {
     return await this.bookingsService.deleteBooking(params.bookingId)
   }
-  */
+}

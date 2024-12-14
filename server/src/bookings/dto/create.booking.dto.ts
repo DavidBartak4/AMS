@@ -1,23 +1,27 @@
 import { Type } from "class-transformer"
-import { IsDateString, IsEmail, IsMongoId, IsPhoneNumber, IsString, ValidateNested } from "class-validator"
+import { IsBoolean, IsDateString, IsEmail, IsMongoId, IsOptional, IsPhoneNumber, IsString, MaxLength, MinLength, ValidateNested } from "class-validator"
 import { IsCheckOutDate, IsCheckInDate } from "../decorators/bookings.decorators"
 
 class Owner {
   @IsString()
+  @MinLength(1)
+  @MaxLength(50)
   firstname: string
 
   @IsString()
+  @MinLength(1)
+  @MaxLength(50)
   lastname: string
 }
 
 export class CreateBookingBodyDto {
   @IsString()
-  @IsString()
   @IsMongoId()
   roomId: string
 
+  @IsOptional()
   @IsEmail()
-  email: string
+  email?: string
 
   @IsDateString()
   @IsCheckInDate()
@@ -34,4 +38,8 @@ export class CreateBookingBodyDto {
   @ValidateNested()
   @Type(function() { return Owner })
   owner: Owner
+
+  @IsOptional()
+  @IsBoolean()
+  sendBookingConfirmation?: boolean
 }

@@ -12,7 +12,7 @@ import {
   MinLength,
   ValidateIf
 } from "class-validator"
-import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
+import { IsCurrencyCode } from "src/common/decorators/currency.codes.decorator"
 
 export class UpdateRoomParamsDto {
   @Prop()
