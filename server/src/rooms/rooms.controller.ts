@@ -9,6 +9,7 @@ import { filterFileTypes } from "src/common/helpers/fileInterceptor.helpers"
 import { File } from "multer" 
 import { GetRoomParamsDto } from "./dto/get.room.dto"
 import { GetRoomsBodyDto, GetRoomsQueryDto } from "./dto/get.rooms.dto"
+import { UpdateRoomBodyDto, UpdateRoomParamsDto } from "./dto/update.room.dto"
 
 @Controller("rooms")
 export class RoomsController {
@@ -30,5 +31,10 @@ export class RoomsController {
   @Get()
   async getRooms(@Body() body: GetRoomsBodyDto, @Query(new ValidationPipe()) query: GetRoomsQueryDto) {
     return await this.roomsService.getRooms(body, query)
+  }
+
+  @Patch()
+  async updateRoom(@Param(new ValidationPipe()) params: UpdateRoomParamsDto, @Body() body: UpdateRoomBodyDto) {
+    return await this.roomsService.updateRoom(params.roomId, body)
   }
 }

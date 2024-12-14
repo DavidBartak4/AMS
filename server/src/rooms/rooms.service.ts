@@ -7,6 +7,7 @@ import { RoomModel } from "./schemas/room.schema"
 import { GetRoomsBodyDto, GetRoomsQueryDto } from "./dto/get.rooms.dto"
 import { AttributesService } from "src/attributes/attributes.service"
 import { OnEvent } from "@nestjs/event-emitter"
+import { UpdateRoomBodyDto } from "./dto/update.room.dto"
 
 @Injectable()
 export class RoomsService {
@@ -97,7 +98,6 @@ export class RoomsService {
 
   async getRooms(body: GetRoomsBodyDto, query: GetRoomsQueryDto) {
     const { name, number, capacity, roomType, price } = body
-    const { limit = 10, page = 1 } = query
     const filters: any = {}
     if (name) { filters.name = { $regex: new RegExp(name, "i") } }
     if (number) { filters.number = number }
@@ -113,15 +113,44 @@ export class RoomsService {
       }
       if (price.currency) { filters["price.currency"] = price.currency }
     }
-    const options = { limit, page }
+    const options = { limit: query.limit, page: query.page }
     const result = await this.roomModel.paginate(filters, options)
+    const rooms = await Promise.all(
+      result.docs.map(async (room) => {
+        const mainImage = room.mainImageId
+          ? await this.mediaService.getMediaInfo(room.mainImageId)
+          : null
+        const images = await Promise.all(
+          (room.imageIds || []).map((id) => this.mediaService.getMediaInfo(id))
+        )
+        const attributes = await Promise.all(
+          (room.attributeIds || []).map((id) => this.attributeService.getAttribute(id))
+        )
+        return {
+          __v: room.__v,
+          _id: room._id,
+          name: room.name,
+          number: room.number,
+          description: room.description,
+          capacity: room.capacity,
+          price: room.price,
+          mainImage,
+          images,
+          attributes,
+        }
+      })
+    )
     return {
       total: result.totalDocs,
       limit: result.limit,
       page: result.page,
       totalPages: result.totalPages,
-      rooms: result.docs,
+      rooms,
     }
+  }
+
+  async updateRoom(roomId: string, body: UpdateRoomBodyDto) {
+    return
   }
 
   @OnEvent("attribute.deleted")
