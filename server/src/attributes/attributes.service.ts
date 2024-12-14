@@ -16,7 +16,7 @@ export class AttributesService {
     private readonly eventEmitter: EventEmitter2
   ) {}
 
-  async createAttribute(body: CreateAttributeBodyDto, file: File) {
+  async createAttribute(body: CreateAttributeBodyDto, file?: File) {
     let media
     if (body.type) { media = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location }) }
     const attribute = await this.attributeModel.create({ imageId: media._id, name: body.name, description: body.description})
@@ -61,7 +61,7 @@ export class AttributesService {
     }
   }
 
-  async updateAttribute(attributeId: string, body: UpdateAttributeBodyDto, file: File) {
+  async updateAttribute(attributeId: string, body: UpdateAttributeBodyDto, file?: File) {
     const attribute = await this.attributeModel.findById(attributeId).exec()
     if (!attribute) { throw new NotFoundException("Attribute not found") }
     let media

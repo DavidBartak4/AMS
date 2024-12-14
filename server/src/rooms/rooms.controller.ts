@@ -10,6 +10,8 @@ import { File } from "multer"
 import { GetRoomParamsDto } from "./dto/get.room.dto"
 import { GetRoomsBodyDto, GetRoomsQueryDto } from "./dto/get.rooms.dto"
 import { UpdateRoomBodyDto, UpdateRoomParamsDto } from "./dto/update.room.dto"
+import { DeleteRoomParamsDto } from "./dto/delete.room.dto"
+import { AddImagesToRoomBodyDto, AddImagesToRoomParamsDto } from "./dto/addImagesToRoom.dto"
 
 @Controller("rooms")
 export class RoomsController {
@@ -19,7 +21,7 @@ export class RoomsController {
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(FilesInterceptor("files", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
-  async createRoom(@Body() body: CreatetRoomBodyDto, @UploadedFiles() files: File[]) {
+  async createRoom(@Body() body: CreatetRoomBodyDto, @UploadedFiles() files?: File[]) {
     return await this.roomsService.createRoom(body, files)
   }
 
@@ -33,8 +35,26 @@ export class RoomsController {
     return await this.roomsService.getRooms(body, query)
   }
 
-  @Patch()
-  async updateRoom(@Param(new ValidationPipe()) params: UpdateRoomParamsDto, @Body() body: UpdateRoomBodyDto) {
-    return await this.roomsService.updateRoom(params.roomId, body)
+  @Patch(":roomId")
+  @Roles("super-admin", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FilesInterceptor("files", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
+  async updateRoom(@Param(new ValidationPipe()) params: UpdateRoomParamsDto, @Body() body: UpdateRoomBodyDto, @UploadedFiles() files?: File[]) {
+    return await this.roomsService.updateRoom(params.roomId, body, files)
+  }
+
+  @Delete(":roomId")
+  @Roles("super-admin", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async deleteRoom(@Param(new ValidationPipe()) params: DeleteRoomParamsDto) {
+    return await this.roomsService.deleteRoom(params.roomId)
+  }
+
+  @Post(":roomId/images")
+  @Roles("super-admin", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseInterceptors(FilesInterceptor("files", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
+  async addImagesToRoom(@Param(new ValidationPipe()) params: AddImagesToRoomParamsDto, @Body() body: AddImagesToRoomBodyDto, @UploadedFiles() files?: File[]) {
+    return await this.roomsService.addImagesToRoom(params.roomId, body, files)
   }
 }
