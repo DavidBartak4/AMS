@@ -10,7 +10,7 @@ import { Booking, BookingModel } from "./schemas/booking.schema"
 import * as nodeMailer from "nodemailer"
 import { CreateBookingBodyDto } from "./dto/create.booking.dto"
 import { v4 as uuidv4 } from "uuid"
-import { PaginateResult } from "mongoose"
+import { FilterQuery, PaginateResult } from "mongoose"
 import { GetBookingsBodyDto, GetBookingsQueryDto } from "./dto/get.bookings.dto"
 import { UpdateBookingBodyDto } from "./dto/update.booking.dto"
 import * as fs from "fs"
@@ -25,13 +25,18 @@ export class BookingService {
     private readonly roomsService: RoomsService,
   ) {}
 
-  async createBooking(
-    body: CreateBookingBodyDto,
-    sendBookingConfirmation?: boolean
-  ) {
+  async createBooking(body: CreateBookingBodyDto, confirmation?: boolean) {
     const room = await this.roomsService.getRoom(body.roomId)
     if (!room) {
       throw new BadRequestException("Room not found")
+    }
+    const bookingConflict = await this.isBookingConflict(
+      body.roomId,
+      body.checkIn,
+      body.checkOut,
+    )
+    if (bookingConflict) {
+      throw new BadRequestException("Booking range is occupied")
     }
     const bookingCode = this.generateBookingCode()
     const booking = new this.bookingModel({
@@ -43,12 +48,16 @@ export class BookingService {
       checkOut: body.checkOut,
       phone: body.phone,
     })
-    if (sendBookingConfirmation === true || (sendBookingConfirmation === undefined && body.email)) {
+    if (confirmation === true || (confirmation === undefined && body.email)) {
       if (!body.email) {
         throw new BadRequestException("Cannot create booking without email")
       }
       try {
-        await this.sendBookingConfirmation(booking, room.name, room.number.toString())
+        await this.sendBookingConfirmation(
+          booking,
+          room.name,
+          room.number.toString(),
+        )
       } catch (err) {
         if (
           err.message ===
@@ -72,12 +81,14 @@ export class BookingService {
   private async sendBookingConfirmation(
     booking,
     roomName: string,
-    roomNumber?: string
+    roomNumber?: string,
   ): Promise<void> {
     const configuration = await this.configurationService.getConfiguration()
     const mailConfiguration = configuration.mail
     if (!mailConfiguration.mailUsername || !mailConfiguration.mailPassword) {
-      throw new Error("Cannot send confirmation because host mail auth is not configured")
+      throw new Error(
+        "Cannot send confirmation because host mail auth is not configured",
+      )
     }
     const { mailHost, mailPort, mailUsername, mailPassword } = mailConfiguration
     const transporter = nodeMailer.createTransport({
@@ -89,8 +100,22 @@ export class BookingService {
         pass: mailPassword,
       },
     })
-    const htmlTemplatePath = path.join(process.cwd(), "src", "bookings", "public", "html", "email.html")
-    const textTemplatePath = path.join(process.cwd(), "src", "bookings", "public", "txt", "email.txt")
+    const htmlTemplatePath = path.join(
+      process.cwd(),
+      "src",
+      "bookings",
+      "public",
+      "html",
+      "email.html",
+    )
+    const textTemplatePath = path.join(
+      process.cwd(),
+      "src",
+      "bookings",
+      "public",
+      "txt",
+      "email.txt",
+    )
     let htmlContent = fs.readFileSync(htmlTemplatePath, "utf8")
     let textContent = fs.readFileSync(textTemplatePath, "utf8")
     const replacements = {
@@ -122,36 +147,147 @@ export class BookingService {
   }
 
   private generateBookingCode(): string {
-    return `${uuidv4().slice(0, 8).toUpperCase()}`
+    return uuidv4().toUpperCase()
   }
 
   async getBooking(bookingId: string): Promise<Booking> {
-    return
+    const booking = await this.bookingModel.findById(bookingId).exec()
+    if (!booking) {
+      throw new BadRequestException("Booking not found")
+    }
+    return booking
   }
 
   async getBookings(
     query: GetBookingsQueryDto,
     body: GetBookingsBodyDto,
   ): Promise<PaginateResult<Booking>> {
-    return
+    const filter: FilterQuery<Booking> = {}
+    if (body.roomId) {
+      filter.roomId = body.roomId
+    }
+    if (body.email) {
+      filter.email = body.email
+    }
+    if (body.bookingCode) {
+      filter.bookingCode = body.bookingCode
+    }
+    if (body.checkIn) {
+      filter.checkIn = { $gte: new Date(body.checkIn) }
+    }
+    if (body.checkOut) {
+      filter.checkOut = { $lte: new Date(body.checkOut) }
+    }
+    if (body.bookingDateRange) {
+      filter.checkIn = { $gte: new Date(body.bookingDateRange.min) }
+      filter.checkOut = { $lte: new Date(body.bookingDateRange.max) }
+    }
+    if (body.bookingDurationInDays?.duration !== undefined) {
+      const { operator, duration } = body.bookingDurationInDays
+      const durationInMs = duration * 24 * 60 * 60 * 1000
+      const operatorMap = {
+        ">": "$gt",
+        "<": "$lt",
+        ">=": "$gte",
+        "<=": "$lte",
+      }
+      const mongoOperator = operator ? operatorMap[operator] : "$eq"
+      if (mongoOperator) {
+        filter.$expr = {
+          [mongoOperator]: [
+            { $subtract: ["$checkOut", "$checkIn"] },
+            durationInMs,
+          ],
+        }
+      } else {
+        throw new Error(`Invalid operator: ${operator}`)
+      }
+    }
+    return await this.bookingModel.paginate(filter, {
+      limit: query.limit,
+      page: query.page,
+      sort: { checkIn: 1 },
+    })
   }
 
   async updateBooking(
     bookingId: string,
     body: UpdateBookingBodyDto,
   ): Promise<Booking> {
-    return
+    const booking = await this.bookingModel.findById(bookingId).exec()
+    if (!booking) {
+      throw new BadRequestException("Booking not found")
+    }
+    const room = await this.roomsService.getRoom(body.roomId || booking.roomId)
+    if (body.roomId) booking.roomId = body.roomId
+    if (body.email) booking.email = body.email
+    if (body.checkIn) booking.checkIn = body.checkIn
+    if (body.checkOut) booking.checkOut = body.checkOut
+    if (body.phone) booking.phone = body.phone
+    if (body.owner) {
+      booking.owner = {
+        ...booking.owner,
+        ...body.owner,
+      }
+    }
+    if (
+      body.confirmation === true ||
+      (body.confirmation === undefined && body.email)
+    ) {
+      if (!body.email) {
+        throw new BadRequestException("Cannot create booking without email")
+      }
+      try {
+        await this.sendBookingConfirmation(
+          booking,
+          room.name,
+          room.number.toString(),
+        )
+      } catch (err) {
+        if (
+          err.message ===
+          "Cannot send confirmation because host mail auth is not configured"
+        ) {
+          throw new InternalServerErrorException(
+            "Booking cannot be created, please contact web administrator",
+          )
+        } else {
+          throw new InternalServerErrorException(err)
+        }
+      }
+    }
+    return await booking.save()
   }
 
   async deleteBooking(bookingId: string): Promise<void> {
+    const booking = await this.bookingModel.findByIdAndDelete(bookingId).exec()
+    if (!booking) {
+      throw new BadRequestException("Booking not found")
+    }
     return
   }
 
-  async getBookingConflict(
+  async getBookingConflict(roomId: string, checkIn: Date, checkOut: Date): Promise<void> {
+    if (await this.isBookingConflict(roomId, checkIn, checkOut)) {
+      throw new BadRequestException("Booking range is occupied")
+    }
+  }
+
+  async isBookingConflict(
     roomId: string,
     checkIn: Date,
     checkOut: Date,
   ): Promise<Boolean> {
-    return
+    await this.roomsService.getRoom(roomId)
+    const conflict = await this.bookingModel.exists({
+      roomId: roomId,
+      $or: [
+        {
+          checkIn: { $lt: checkOut },
+          checkOut: { $gt: checkIn },
+        },
+      ],
+    })
+    return conflict !== null
   }
 }

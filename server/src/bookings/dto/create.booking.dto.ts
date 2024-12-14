@@ -41,5 +41,5 @@ export class CreateBookingBodyDto {
 
   @IsOptional()
   @IsBoolean()
-  sendBookingConfirmation?: boolean
+  confirmation?: boolean
 }

@@ -9,34 +9,38 @@ import {
   IsString,
   IsUUID,
   Min,
-  ValidateNested,
+  ValidateNested
 } from "class-validator"
 import { IsDateRange } from "src/common/decorators/range.date.decorator"
 
 export class GetBookingsQueryDto {
   @IsOptional()
-  @Type(function () {
-    return Number
-  })
+  @Type(() => Number)
   @IsIn([10, 25, 50, 100])
   limit?: number = 10
 
   @IsOptional()
-  @Type(function () {
-    return Number
-  })
+  @Type(() => Number)
   @Min(1)
   page?: number = 1
 }
 
 class DateRange {
   @IsDateString()
-  @Type(() => Date)
   min: Date
 
   @IsDateString()
-  @Type(() => Date)
   max: Date
+}
+
+class DurationCondition {
+  @IsOptional()
+  @IsIn([">", "<", ">=", "<="])
+  operator?: string
+
+  @IsNumber()
+  @Type(() => Number)
+  duration: number
 }
 
 export class GetBookingsBodyDto {
@@ -58,14 +62,15 @@ export class GetBookingsBodyDto {
   checkOut?: Date
 
   @IsOptional()
-  @IsNumber()
-  bookingDurationInDays?: number
+  @ValidateNested()
+  @Type(() => DurationCondition)
+  bookingDurationInDays?: DurationCondition
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => Date)
+  @Type(() => DateRange)
   @IsDateRange()
-  dateRange?: DateRange
+  bookingDateRange?: DateRange
 
   @IsOptional()
   @IsString()

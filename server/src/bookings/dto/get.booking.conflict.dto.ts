@@ -1,7 +1,11 @@
-import { IsDateString } from "class-validator"
+import { IsDateString, IsMongoId, IsString } from "class-validator"
 import { IsCheckOutDate, IsCheckInDate } from "../decorators/bookings.decorators"
 
 export class GetBookingConflictBodyDto {
+  @IsString()
+  @IsMongoId()
+  roomId: string
+  
   @IsDateString()
   @IsCheckInDate()
   checkIn?: Date

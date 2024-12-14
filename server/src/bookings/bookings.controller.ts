@@ -9,6 +9,7 @@ import { GetBookingParamsDto } from "./dto/get.booking.dto"
 import { GetBookingsBodyDto, GetBookingsQueryDto } from "./dto/get.bookings.dto"
 import { UpdateBookingBodyDto, UpdateBookingParamsDto } from "./dto/update.booking.dto"
 import { DeleteBookingParamsDto } from "./dto/delete.booking.dto"
+import { GetBookingConflictBodyDto } from "./dto/get.booking.conflict.dto"
 
 @Controller("bookings")
 export class BookingsController {
@@ -19,7 +20,7 @@ export class BookingsController {
   @UseGuards(OptionalAuthGuard)
   async createBooking(@Body() body: CreateBookingBodyDto, @Req() req) {
     if (req.user && (req.user.roles.includes("admin") || req.user.roles.includes("super-admin"))) {
-      return await this.bookingsService.createBooking(body, body.sendBookingConfirmation)
+      return await this.bookingsService.createBooking(body, body.confirmation)
     } else {
       return await this.bookingsService.createBooking(body, true)
     }
@@ -51,5 +52,12 @@ export class BookingsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   async deleteBooking(@Param(new ValidationPipe()) params: DeleteBookingParamsDto) {
     return await this.bookingsService.deleteBooking(params.bookingId)
+  }
+
+  @Post("conflict")
+  @Roles("admin", "super-admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async getBookingConflict(@Body() body: GetBookingConflictBodyDto) {
+    return await this.bookingsService.getBookingConflict(body.roomId, body.checkIn, body.checkOut)
   }
 }
