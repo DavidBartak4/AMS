@@ -22,7 +22,7 @@ export class RoomsController {
     return await this.roomsService.createRoom(body, files)
   }
 
-  @Get(":/roomId") 
+  @Get(":roomId") 
   async getRoom(@Param(new ValidationPipe()) params: GetRoomParamsDto) {
     return await this.roomsService.getRoom(params.roomId)
   }
