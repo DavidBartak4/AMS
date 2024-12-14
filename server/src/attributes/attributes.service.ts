@@ -6,10 +6,15 @@ import { CreateAttributeBodyDto } from "./dto/create.attribute.dto"
 import { File } from "multer"
 import { GetAttributesQueryDto } from "./dto/get.attributes.dto"
 import { UpdateAttributeBodyDto } from "./dto/update.attribute.dto"
+import { EventEmitter2 } from "@nestjs/event-emitter"
 
 @Injectable()
 export class AttributesService {
-  constructor(@InjectModel("Attribute") private readonly attributeModel: AttributeModel, private readonly mediaService: MediaService) {}
+  constructor(
+    @InjectModel("Attribute") private readonly attributeModel: AttributeModel, 
+    private readonly mediaService: MediaService,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async createAttribute(body: CreateAttributeBodyDto, file: File) {
     let media
@@ -84,6 +89,7 @@ export class AttributesService {
     if (!attribute) { throw new NotFoundException("Attribute not found") }
     if (attribute.imageId) { await this.mediaService.deleteMedia(attribute.imageId.toString()) }
     await this.attributeModel.deleteOne({ _id: attributeId })
+    this.eventEmitter.emit("attribute.deleted", attributeId)
     return
   }
 }

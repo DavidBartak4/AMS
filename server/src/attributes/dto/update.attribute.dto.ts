@@ -14,7 +14,7 @@ export class UpdateAttributeBodyDto {
 
   @IsOptional()
   @IsIn(["url", "file"])
-  type?: string
+  type: string
   
   @ValidateIf(function(obj) { return obj.type === "url" })
   @IsString()

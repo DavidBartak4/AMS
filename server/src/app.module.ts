@@ -9,10 +9,12 @@ import { RoomsModule } from "./rooms/rooms.module"
 import { BookingModule } from "./bookings/bookings.module"
 import { ConfigurationModule } from "./configuration/configuration.module"
 import { ConfigModule } from "@nestjs/config"
+import { EventEmitterModule } from "@nestjs/event-emitter"
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    EventEmitterModule.forRoot(),
     MongooseModule.forRoot("mongodb://localhost/AMS"),
     AuthModule,
     UsersModule,
@@ -20,7 +22,7 @@ import { ConfigModule } from "@nestjs/config"
     AttributesModule,
     RoomsModule,
     BookingModule,
-    ConfigurationModule,
+    ConfigurationModule
   ],
   providers: [AppService],
 })

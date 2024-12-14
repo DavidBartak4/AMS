@@ -12,5 +12,6 @@ import { MediaModule } from "src/media/media.module"
   ],
   controllers: [AttributesController],
   providers: [AttributesService],
+  exports: [AttributesService]
 })
 export class AttributesModule {}
