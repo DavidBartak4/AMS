@@ -29,7 +29,7 @@ export class Room {
   mainImageId?: string
 
   @Prop()
-  imageIds?: [string]
+  imageIds?: string[]
 
   @Prop({ required: true, min: 0 })
   capacity: number

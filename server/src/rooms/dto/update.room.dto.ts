@@ -1,5 +1,5 @@
 import { Prop } from "@nestjs/mongoose"
-import { Transform, Type } from "class-transformer"
+import { Transform, Type} from "class-transformer"
 import {
   IsIn,
   IsMongoId,
@@ -10,7 +10,7 @@ import {
   MaxLength,
   Min,
   MinLength,
-  ValidateIf,
+  ValidateIf
 } from "class-validator"
 import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
 
@@ -52,9 +52,7 @@ export class UpdateRoomBodyDto {
   description?: string
 
   @IsOptional()
-  @Type(function () {
-    return Number
-  })
+  @Type(function () { return Number })
   @IsNumber()
   @Min(0)
   capacity?: number
@@ -85,21 +83,8 @@ export class UpdateRoomBodyDto {
   @IsIn(["url", "file"])
   ["main.type"]?: string
 
-  @ValidateIf(function (obj) {
-    return obj.mainType
-  })
-  @Type(function () {
-    return Number
-  })
-  @IsNumber()
-  ["main.index"]: number
-
-  @IsOptional()
-  @Transform(function (field) {
-    const value = field.value
-    return Array.isArray(value) ? value : [value]
-  })
-  @IsString({ each: true })
-  @IsUrl({}, { each: true })
-  location?: string[]
+  @ValidateIf(function(obj) { return obj.type === "url" })
+  @IsString()
+  @IsUrl()
+  location: string
 }
