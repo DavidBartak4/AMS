@@ -2,6 +2,7 @@ import { IsOptional, IsIn, Min, IsNumber, MinLength, MaxLength, IsString, Valida
 import { IsCurrencyCode } from "src/common/decorators/currencyCode.dectorator"
 import { Type } from "class-transformer"
 import { IsRange } from "src/common/decorators/range.decorator"
+import { Range } from "src/common/types/range"
 
 class Price {
   @IsOptional()
@@ -9,8 +10,10 @@ class Price {
   value?: number
 
   @IsOptional()
-  @IsRange("min", "max")
-  range?: any
+  @ValidateNested()
+  @Type(function() { return Range })
+  @IsRange()
+  range?: Range
 
   @IsOptional()
   @IsString()

@@ -95,15 +95,15 @@ export class RoomsService {
     }
   }
 
+  async getRooms(body: GetRoomsBodyDto, query: GetRoomsQueryDto) {
+    return
+  }
+
   @OnEvent("attribute.deleted")
   async handleAttributeDeleted(attributeId: string) {
     await this.roomModel.updateMany(
       { attributeIds: attributeId },
       { $pull: { attributeIds: attributeId } }
     )
-  }
-
-  async getRooms(body: GetRoomsBodyDto, query: GetRoomsQueryDto) {
-    
   }
 }
