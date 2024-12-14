@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
-import { Document } from "mongoose"
-
-export type BookingDocument = Booking & Document
+import { Document, PaginateModel } from "mongoose"
+import * as mongoosePaginate from "mongoose-paginate-v2"
 
 class Owner {
   @Prop({ required: true })
@@ -35,4 +34,7 @@ export class Booking {
   phone: string
 }
 
+export type BookingDocument = Booking & Document
 export const BookingSchema = SchemaFactory.createForClass(Booking)
+export type BookingModel = PaginateModel<BookingDocument>
+BookingSchema.plugin(mongoosePaginate)

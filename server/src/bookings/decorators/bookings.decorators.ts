@@ -5,7 +5,7 @@ import {
 } from "class-validator"
 import { isAfter, differenceInDays, parseISO, isToday } from "date-fns"
 
-export function IsMinDateToday(validationOptions?: ValidationOptions) {
+export function IsCheckInDate(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
       name: "IsMinDateToday",
@@ -39,10 +39,10 @@ export function IsCheckOutDate(validationOptions?: ValidationOptions) {
           const checkInDate = parseISO(checkIn)
           const checkOutDate = parseISO(value)
           const daysDifference = differenceInDays(checkOutDate, checkInDate)
-          return daysDifference >= 1 && daysDifference <= 60
+          return daysDifference >= 1
         },
         defaultMessage(): string {
-          return "$property must be 1 to 60 nights after check-in."
+          return "$property must be at least 1 night after check-in."
         },
       },
     })

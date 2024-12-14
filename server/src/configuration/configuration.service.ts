@@ -3,11 +3,20 @@ import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import { Configuration, ConfigurationDocument } from "./schemas/configuration.schema"
 import * as nodeMailer from "nodemailer"
-import { UpdateMailConfigurationBodyDto } from "./dto/update.mail.configuration.dto"
+import { UpdateConfigurationBodyDto } from "./dto/update.configuration.dto"
+import { CreateConfigurationBodyDto } from "./dto/create.configuration.dto copy"
 
 @Injectable()
 export class ConfigurationService {
   constructor(@InjectModel(Configuration.name) private readonly configurationModel: Model<ConfigurationDocument>) {}
+
+  async createConfiguration(body: CreateConfigurationBodyDto = {}): Promise<Configuration> {
+    const configuration = await this.configurationModel.findOne()
+    if (configuration) { throw new BadRequestException("Configuration already exists") }
+    if (body.mail?.mailUsername && body.mail?.mailPassword) { await this.verifyMail(body.mail) }
+    const createdConfiguration = new this.configurationModel(body)
+    return await createdConfiguration.save()
+  }
 
   async getConfiguration(): Promise<Configuration> {
     const configuration = await this.configurationModel.findOne()
@@ -15,22 +24,24 @@ export class ConfigurationService {
     return configuration
   }
 
-  async updateMailConfiguration(body: UpdateMailConfigurationBodyDto): Promise<Configuration> {
+  async updateConfiguration(body: UpdateConfigurationBodyDto): Promise<Configuration> {
     const configuration = await this.configurationModel.findOne()
-    body.mailUsername = body.mailUsername || configuration && configuration.mailUsername || undefined
-    body.mailPassword = body.mailPassword || configuration && configuration.mailPassword || undefined
-    if (body.mailPassword && body.mailUsername) {
-      await this.verifyMail({
-        mailHost: body.mailHost || configuration && configuration.mailHost || undefined,
-        mailPort: body.mailPort || configuration && configuration.mailPort || undefined,
-        mailUsername: body.mailUsername,
-        mailPassword: body.mailPassword
-      })
+    const mail = {
+      mailHost: body.mail?.mailHost ?? configuration?.mail.mailHost,
+      mailPort: body.mail?.mailPort ?? configuration?.mail.mailPort,
+      mailUsername: body.mail?.mailUsername ?? configuration?.mail.mailUsername,
+      mailPassword: body.mail?.mailPassword ?? configuration?.mail.mailPassword,
+      useCompanyName: body.mail?.useCompanyName ?? configuration?.mail.useCompanyName ?? true,
     }
-    return await this.configurationModel.findOneAndUpdate({}, body, { new: true, upsert: true })
+    if (mail.mailUsername && mail.mailPassword) { await this.verifyMail(mail) }
+    const updatePayload = {
+      mail,
+      companyName: body.companyName ?? configuration?.companyName ?? "example company",
+    }
+    return await this.configurationModel.findOneAndUpdate({}, updatePayload, { new: true, upsert: true })
   }
 
-  private async verifyMail(mailConfiguration: UpdateMailConfigurationBodyDto): Promise<void> {
+  private async verifyMail(mailConfiguration: any): Promise<void> {
     try {
       await nodeMailer.createTransport({
         host: mailConfiguration.mailHost,

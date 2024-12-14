@@ -1,9 +1,15 @@
-import { Controller } from "@nestjs/common"
+import { Body, Controller, Post } from "@nestjs/common"
 import { BookingService } from "./bookings.service"
+import { CreateBookingBodyDto } from "./dto/create.booking.dto"
 
 @Controller("bookings")
 export class BookingsController {
   constructor(private readonly bookingsService: BookingService) {}
+
+  @Post()
+  async createBooking(@Body() body: CreateBookingBodyDto) {
+    return await this.bookingsService.createBooking(body)
+  }
 }
 
   /*
