@@ -15,6 +15,11 @@ export class CreatetRoomBodyDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"])
+  ["room.type"]?: string  
+
+  @IsOptional()
+  @IsString()
   @MinLength(1)
   @MaxLength(1000)
   description?: string

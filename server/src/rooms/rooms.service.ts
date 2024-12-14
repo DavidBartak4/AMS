@@ -96,7 +96,32 @@ export class RoomsService {
   }
 
   async getRooms(body: GetRoomsBodyDto, query: GetRoomsQueryDto) {
-    return
+    const { name, number, capacity, roomType, price } = body
+    const { limit = 10, page = 1 } = query
+    const filters: any = {}
+    if (name) { filters.name = { $regex: new RegExp(name, "i") } }
+    if (number) { filters.number = number }
+    if (capacity) { filters.capacity = capacity }
+    if (roomType) { filters.roomType = roomType }
+    if (price) {
+      if (price.value) { filters["price.value"] = price.value }
+      if (price.range) {
+        filters["price.value"] = {
+          $gte: price.range.min,
+          $lte: price.range.max,
+        }
+      }
+      if (price.currency) { filters["price.currency"] = price.currency }
+    }
+    const options = { limit, page }
+    const result = await this.roomModel.paginate(filters, options)
+    return {
+      total: result.totalDocs,
+      limit: result.limit,
+      page: result.page,
+      totalPages: result.totalPages,
+      rooms: result.docs,
+    }
   }
 
   @OnEvent("attribute.deleted")

@@ -30,7 +30,7 @@ export class GetRoomsQueryDto {
   @IsOptional()
   @Type(function() { return Number })
   @Min(1)
-  page?: number
+  page?: number = 1
 }
 
 export class GetRoomsBodyDto {
@@ -47,6 +47,11 @@ export class GetRoomsBodyDto {
   @IsNumber()
   @Min(0)
   capacity?: number
+
+  @IsOptional()
+  @IsString()
+  @IsIn(["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"])
+  roomType?: string
 
   @IsOptional()
   @ValidateNested()

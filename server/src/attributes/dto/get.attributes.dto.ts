@@ -10,5 +10,5 @@ export class GetAttributesQueryDto {
   @IsOptional()
   @Type(function() { return Number })
   @Min(1)
-  page?: number
+  page?: number = 1
 }

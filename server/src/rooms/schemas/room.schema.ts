@@ -19,6 +19,9 @@ export class Room {
   @Prop()
   number?: number
 
+  @Prop({ enum: ["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"] })
+  roomType?: string
+
   @Prop({ maxlength: 1000 })
   description?: string
 
