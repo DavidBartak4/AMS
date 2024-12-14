@@ -1,17 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common"
-import { InjectModel, InjectConnection } from "@nestjs/mongoose"
-import { Model, Connection } from "mongoose"
-import { BookingDocument, Booking } from "./schemas/booking.schema"
-import { PostBookingBodyDto } from "./dto/post.booking.dto"
-import { v4 as uuidv4 } from "uuid"
-import * as nodeMailer from "nodemailer"
-import { ConfigurationService } from "../configuration/configuration.service"
+import { Injectable } from "@nestjs/common"
+import { InjectModel } from "@nestjs/mongoose"
+import { Model } from "mongoose"
+import { ConfigurationService } from "src/configuration/configuration.service"
 import { RoomsService } from "src/rooms/rooms.service"
-import { PatchBookingBodyDto } from "./dto/patch.booking.dto"
+import { Booking, BookingDocument } from "./schemas/booking.schema"
 
 @Injectable()
 export class BookingService {
@@ -20,8 +12,8 @@ export class BookingService {
     private readonly bookingModel: Model<BookingDocument>,
     private readonly configurationService: ConfigurationService,
     private readonly roomsService: RoomsService,
-    @InjectConnection() private readonly connection: Connection,
   ) {}
+}
 
   /*
   async createBooking(dto: PostBookingBodyDto) {
@@ -121,4 +113,3 @@ export class BookingService {
     return { message: "Booking successfully deleted" }
   }
   */
-}

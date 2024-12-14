@@ -1,27 +1,10 @@
-import {
-  Controller,
-  UseGuards,
-  Body,
-  Post,
-  Get,
-  Patch,
-  Delete,
-  ValidationPipe,
-  Param,
-} from "@nestjs/common"
-import { JwtAuthGuard } from "../auth/guards/jwt.guard"
-import { RolesGuard } from "../auth/guards/roles.guard"
-import { Roles } from "../auth/decorators/roles.decorator"
-import { PostBookingBodyDto } from "./dto/post.booking.dto"
+import { Controller } from "@nestjs/common"
 import { BookingService } from "./bookings.service"
-import { BookingParamsDto } from "./dto/booking.dto"
-import { PatchBookingBodyDto } from "./dto/patch.booking.dto"
-import { GetBookingConflictBodyDto } from "./dto/get.bookingConflict.dto"
-import { RoomParamsDto } from "src/rooms/dto/room.dto"
 
 @Controller("bookings")
 export class BookingsController {
   constructor(private readonly bookingsService: BookingService) {}
+}
 
   /*
   @Post()
@@ -75,4 +58,3 @@ export class BookingsController {
     return await this.bookingsService.deleteBooking(params.bookingId)
   }
   */
-}

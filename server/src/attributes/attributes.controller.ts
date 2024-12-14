@@ -10,6 +10,7 @@ import { DeleteAttributeParamsDto } from "./dto/delete.attribute.dto"
 import { GetAttributeParamsDto } from "./dto/get.attribute.dto"
 import { GetAttributesQueryDto } from "./dto/get.attributes.dto"
 import { UpdateAttributeBodyDto } from "./dto/update.attribute.dto"
+import { filterFileTypes } from "src/common/helpers/fileInterceptor.helpers"
 
 @Controller("attributes")
 export class AttributesController {
@@ -18,7 +19,7 @@ export class AttributesController {
   @Post()
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)  
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", { fileFilter:  filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
   async createAttribute(@Body() body: CreateAttributeBodyDto, @UploadedFile() file?: File) {
     return await this.attributesService.createAttribute(body, file)
   }

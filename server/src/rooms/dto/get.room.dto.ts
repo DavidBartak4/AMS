@@ -1,6 +1,6 @@
 import { IsString, IsMongoId } from "class-validator"
 
-export class RoomParamsDto {
+export class GetRoomParamsDto {
   @IsString()
   @IsMongoId()
   roomId: string
