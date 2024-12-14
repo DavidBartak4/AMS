@@ -19,6 +19,7 @@ export class RoomsService {
   ) {}
 
   async createRoom(body: CreatetRoomBodyDto, files?: File[]) {
+    body.location = body.location || []
     let mainImageId
     if (body["main.type"]) {
       const file = files[body["main.index"]]
@@ -228,7 +229,7 @@ export class RoomsService {
   }
 
   async deleteRoom(roomId: string): Promise<void> {
-    const room = await this.roomModel.findById(roomId);
+    const room = await this.roomModel.findById(roomId)
     if (!room) { throw new BadRequestException(`Room with ID ${roomId} not found`) }
     const imagesToDelete = new Set<string>()
     if (room.mainImageId) { imagesToDelete.add(room.mainImageId) }
@@ -237,20 +238,51 @@ export class RoomsService {
     await this.roomModel.findByIdAndDelete(roomId)
   }
 
-  async addImagesToRoom(roomId: string, body: AddImagesToRoomBodyDto, file?: File[]) {
-    
-  }
+  async addImagesToRoom(roomId: string, body: AddImagesToRoomBodyDto, files?: File[]) {
+    const room = await this.roomModel.findById(roomId)
+    if (!room) { throw new BadRequestException(`Room with ID ${roomId} not found`) }
+    const newImageIds: string[] = []
+    if (files && files.length > 0) {
+      for (const file of files) {
+        const media = await this.mediaService.createMedia({ file, type: "file" })
+        newImageIds.push(media._id.toString())
+      }
+    }
+    if (body.location && body.location.length > 0) {
+      for (const location of body.location) {
+        const media = await this.mediaService.createMedia({ location, type: "url" })
+        newImageIds.push(media._id.toString())
+      }
+    }
+    room.imageIds.push(...newImageIds)
+    await room.save()
+    const images = await Promise.all(room.imageIds.map((id) => this.mediaService.getMediaInfo(id)))
+    return {
+      __v: room.__v,
+      _id: room._id,
+      name: room.name,
+      number: room.number,
+      description: room.description,
+      capacity: room.capacity,
+      price: room.price,
+      mainImage: room.mainImageId ? await this.mediaService.getMediaInfo(room.mainImageId) : null,
+      images,
+      attributes: await Promise.all(
+        (room.attributeIds || []).map((id) => this.attributeService.getAttribute(id))
+      ),
+    }
+  } 
 
   async removeImagesFromRoom(roomId: string, imageIds: string[]) {
-
+    return
   }
 
   async addAttribute(roomId: string, attributeId: string) {
-
+    return
   }
 
   async removeAttribute(roomId: string, attributeId: string) {
-
+    return
   }
 
   @OnEvent("attribute.deleted")

@@ -9,19 +9,6 @@ export class AddImagesToRoomParamsDto {
 
 export class AddImagesToRoomBodyDto {
   @IsOptional()
-  @IsIn(["url", "file"])
-  ["main.type"]: string
-
-  @ValidateIf(function (obj) {
-    return obj.mainType
-  })
-  @Type(function () {
-    return Number
-  })
-  @IsNumber()
-  ["main.index"]: number
-
-  @IsOptional()
   @Transform(function (field) {
     const value = field.value
     return Array.isArray(value) ? value : [value]
