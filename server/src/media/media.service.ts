@@ -86,9 +86,9 @@ export class MediaService {
     const mediaArray = await this.mediaModel.find({ _id: { $in: objectIds } }).exec()
     const foundIds = mediaArray.map(function (media) { return media._id.toString() })
     const missingIds = mediaIds.filter(function (id) { return !foundIds.includes(id) })
-    if (missingIds.length > 0) { throw new NotFoundException(`Media not found for IDs: ${missingIds.join(', ')}`) } 
+    if (missingIds.length > 0) { throw new NotFoundException(`Media not found for IDs: ${missingIds.join(", ")}`) } 
     return mediaArray.map(function (media) {
-      if (media.type === 'file') { media.location = this.getMediaStreamLocation(media._id.toString()) }
+      if (media.type === "file") { media.location = this.getMediaStreamLocation(media._id.toString()) }
       return media
     })
   }

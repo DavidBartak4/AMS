@@ -28,17 +28,18 @@ export class AttributesController {
     return await this.attributesService.getAttributes(query)
   }
 
-  @Get()
+  @Get("/:attributeId")
   async getAttribute(@Param(new ValidationPipe()) params: GetAttributeParamsDto) {
     return await this.attributesService.getAttribute(params.attributeId)
   }
 
-  @Patch()
-  async updateAttribute(@Param(new ValidationPipe()) params: GetAttributeParamsDto, @Body() body: UpdateAttributeBodyDto) {
-    return await this.attributesService.updateAttribute(params.attributeId, body)
+  @Patch("/:attributeId")
+  @UseInterceptors(FileInterceptor("file"))
+  async updateAttribute(@Param(new ValidationPipe()) params: GetAttributeParamsDto, @Body() body: UpdateAttributeBodyDto, @UploadedFile() file?: File) {
+    return await this.attributesService.updateAttribute(params.attributeId, body, file)
   }
 
-  @Delete()
+  @Delete("/:attributeId")
   async deleteAttribute(@Param(new ValidationPipe()) params: DeleteAttributeParamsDto) {
     return await this.attributesService.deleteAttribute(params.attributeId)
   }

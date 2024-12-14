@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose"
 import { Document, PaginateModel } from "mongoose"
 import * as mongoosePaginate from "mongoose-paginate-v2"
-import { Media } from "src/media/schemas/media.schema"
 
 @Schema({ timestamps: true })
 export class Attribute {
