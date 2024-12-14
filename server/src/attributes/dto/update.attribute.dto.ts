@@ -19,5 +19,5 @@ export class UpdateAttributeBodyDto {
   @ValidateIf(function(obj) { return obj.type === "url" })
   @IsString()
   @IsUrl()
-  url: string
+  location: string
 }

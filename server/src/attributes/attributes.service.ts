@@ -11,9 +11,14 @@ import { UpdateAttributeBodyDto } from "./dto/update.attribute.dto"
 export class AttributesService {
   constructor(@InjectModel("Attribute") private readonly attributeModel: AttributeModel, private readonly mediaService: MediaService) {}
 
-  async createAttribute(body: CreateAttributeBodyDto, file: File): Promise<Attribute> {
-    const media = await this.mediaService.createMedia({ file: file, type: body.type, url: body.url })
-    return
+  async createAttribute(body: CreateAttributeBodyDto, file: File): Promise<any> {
+    const media = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location })
+    const attribute = await this.attributeModel.create({ imageId: media._id, name: body.name, description: body.description})
+    return {
+      image: media,
+      name: attribute.name,
+      description: attribute.description
+    }
   }
 
   async getAttributes(query: GetAttributesQueryDto) {

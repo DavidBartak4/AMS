@@ -5,6 +5,8 @@ import { Document, Types } from "mongoose"
 export class Media {
     _id: Types.ObjectId
 
+    __v: number
+
     @Prop({ required: true, enum: ["url", "file"]})
     type: string
 
@@ -12,7 +14,7 @@ export class Media {
     filename?: string
 
     @Prop()
-    url?: string
+    location?: string
 
     @Prop()
     contentType?: string

@@ -8,9 +8,11 @@ import { AttributesModule } from "./attributes/attributes.module"
 import { RoomsModule } from "./rooms/rooms.module"
 import { BookingModule } from "./bookings/bookings.module"
 import { ConfigurationModule } from "./configuration/configuration.module"
+import { ConfigModule } from "@nestjs/config"
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot("mongodb://localhost/AMS"),
     AuthModule,
     UsersModule,
