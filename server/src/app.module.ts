@@ -8,14 +8,15 @@ import { AttributesModule } from "./attributes/attributes.module"
 import { RoomsModule } from "./rooms/rooms.module"
 import { BookingModule } from "./bookings/bookings.module"
 import { ConfigurationModule } from "./configuration/configuration.module"
-import { ConfigModule } from "@nestjs/config"
 import { EventEmitterModule } from "@nestjs/event-emitter"
+import { AppController } from "./app.controller"
+import { ConfigModule as AppConfigModule } from "@nestjs/config"
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
     EventEmitterModule.forRoot(),
     MongooseModule.forRoot("mongodb://localhost/AMS"),
+    AppConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     UsersModule,
     MediaModule,
@@ -25,5 +26,6 @@ import { EventEmitterModule } from "@nestjs/event-emitter"
     ConfigurationModule
   ],
   providers: [AppService],
+  controllers: [AppController],
 })
 export class AppModule {}

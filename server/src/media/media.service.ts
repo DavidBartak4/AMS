@@ -7,13 +7,13 @@ import { Media, MediaDocument } from "./schemas/media.schema"
 import { Model } from "mongoose"
 import { InjectModel } from "@nestjs/mongoose"
 import { CreateMediaBodyDto } from "./dto/create.media.dto"
-import { ConfigService } from "@nestjs/config"
+import { ConfigService as AppConfigService } from "@nestjs/config"
 
 @Injectable()
 export class MediaService {
   private bucket: GridFSBucket
 
-  constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Media.name) private readonly mediaModel: Model<MediaDocument>, private readonly configService: ConfigService) {
+  constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Media.name) private readonly mediaModel: Model<MediaDocument>, private readonly appConfigService: AppConfigService) {
     this.bucket = new GridFSBucket(this.connection.db, {
       bucketName: "media",
     })
@@ -94,7 +94,7 @@ export class MediaService {
   }
 
   private getMediaStreamLocation(mediaId: string): string {
-    const url = this.configService.get("url")
+    const url = this.appConfigService.get("url")
     if (!url) { throw new BadRequestException("Stream location is not active") }
     return `${url}/media/${mediaId}/stream`
   }
