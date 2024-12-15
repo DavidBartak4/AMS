@@ -7,9 +7,11 @@ import { ConfigService as AppConfigService } from "@nestjs/config"
 
 @Injectable()
 export class AppService {
+  private configuration: any
   constructor(private readonly usersService: UsersService, private readonly authService: AuthService, private readonly configurationService: ConfigurationService, private readonly appConfigService: AppConfigService) {}
 
-  async setupApp() {
+  async setupApp(configuration: any) {
+    this.configuration = configuration
     await this.setupAppConfig()
     await this.setupSuperAdmin()
     await this.setupConfiguration()
@@ -17,7 +19,7 @@ export class AppService {
 
   private async setupAppConfig() {
     try {
-      const res = await fetch(`http://localhost:${3000}`)
+      const res = await fetch(`http://localhost:${this.configuration.port}`)
       const data = await res.json()
       const { protocol, host } = data
       const url = `${protocol}://${host}`
