@@ -9,7 +9,6 @@ import { RoomsModule } from "./rooms/rooms.module"
 import { BookingModule } from "./bookings/bookings.module"
 import { ConfigurationModule } from "./configuration/configuration.module"
 import { EventEmitterModule } from "@nestjs/event-emitter"
-import { AppController } from "./app.controller"
 import { ConfigModule as AppConfigModule } from "@nestjs/config"
 
 @Module({
@@ -25,7 +24,6 @@ import { ConfigModule as AppConfigModule } from "@nestjs/config"
     BookingModule,
     ConfigurationModule
   ],
-  providers: [AppService],
-  controllers: [AppController],
+  providers: [AppService]
 })
 export class AppModule {}

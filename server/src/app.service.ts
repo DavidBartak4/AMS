@@ -12,20 +12,12 @@ export class AppService {
 
   async setupApp(configuration: any) {
     this.configuration = configuration
-    await this.setupAppConfig()
+    this.setupAppConfig()
     await this.setupSuperAdmin()
     await this.setupConfiguration()
   }
 
-  private async setupAppConfig() {
-    try {
-      const res = await fetch(`http://localhost:${this.configuration.port}`)
-      const data = await res.json()
-      const { protocol, host } = data
-      const url = `${protocol}://${host}`
-      this.appConfigService.set("url", url)
-    } catch (err) {}
-  }
+  private setupAppConfig() { this.appConfigService.set("url", this.configuration.url) }
 
   private async setupConfiguration() {
     try { await this.configurationService.createConfiguration() } catch (err) {}
