@@ -1,22 +1,22 @@
 import { Type } from "class-transformer"
-import { IsOptional, IsString, IsInt, ValidateNested, MinLength, MaxLength, IsBoolean } from "class-validator"
+import { IsOptional, IsString, IsInt, ValidateNested, IsBoolean } from "class-validator"
 
 class Mail {
   @IsOptional()
   @IsString()
-  mailHost?: string
+  host?: string
 
   @IsOptional()
   @IsInt()
-  mailPort?: number
+  port?: number
 
   @IsOptional()
   @IsString()
-  mailUsername?: string
+  username?: string
 
   @IsOptional()
   @IsString()
-  mailPassword?: string
+  password?: string
 
   @IsOptional()
   @IsBoolean()
@@ -31,7 +31,5 @@ export class CreateConfigurationBodyDto {
 
   @IsOptional()
   @IsString()
-  //@MinLength(1)
-  //@MaxLength(100)
   companyName?: string
 }

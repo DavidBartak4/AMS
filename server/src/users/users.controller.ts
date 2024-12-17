@@ -15,15 +15,13 @@ export class UsersController {
   @Get("admins")
   @Roles("super-admin", "admin")
   async getAdmins(@Query(new ValidationPipe()) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto) {
-    return await this.usersService.getAdmins(body, query)
+    return await this.usersService.getAdmins(query, body)
   }
 
   @Get(":userId")
   @Roles("super-admin", "admin")
   async getUser(@Param(new ValidationPipe()) params: GetUserParamsDto) {
-    const user = await this.usersService.getUser(params.userId)
-    user.password = undefined
-    return user
+    return await this.usersService.getUser(params.userId)
   }
 
   @Delete(":userId")

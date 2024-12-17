@@ -15,6 +15,7 @@ import { DeleteRoomTypeParamsDto } from "./dto/delete.room.type.dto"
 export class RoomTypesController {
   constructor(private readonly roomsTypeService: RoomsTypesService) {}
 
+  /*
   @Post()
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -51,4 +52,5 @@ export class RoomTypesController {
   async deleteRoomType(@Param(new ValidationPipe()) params: DeleteRoomTypeParamsDto) {
     return await this.roomsTypeService.deleteRoomType(params.roomTypeId)
   }
+    */
 }

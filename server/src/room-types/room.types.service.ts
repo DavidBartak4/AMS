@@ -16,6 +16,7 @@ export class RoomsTypesService {
     private readonly attributeService: AttributesService,
   ) {}
 
+  /*
   async createRoomType(body: CreateRoomTypeBodyDto, files: File[]) {
     const existingRoomTypes = await this.getRoomTypes({ name: body.name }, {})
     if (existingRoomTypes.docs.length > 0) {
@@ -179,4 +180,5 @@ export class RoomsTypesService {
     delete transformed.attributeIds
     return transformed
   }
+  */
 }

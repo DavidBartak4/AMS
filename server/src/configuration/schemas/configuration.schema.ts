@@ -4,16 +4,16 @@ import { HydratedDocument } from "mongoose"
 @Schema({ _id: false })
 export class Mail {
   @Prop({ type: String })
-  mailHost?: string
+  host?: string
 
   @Prop({ type: Number })
-  mailPort?: number
+  port?: number
 
   @Prop({ type: String })
-  mailUsername?: string
+  username?: string
 
   @Prop({ type: String })
-  mailPassword?: string
+  password?: string
 
   @Prop({ required: true, default: true })
   useCompanyName: boolean

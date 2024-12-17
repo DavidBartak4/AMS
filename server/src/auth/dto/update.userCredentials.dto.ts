@@ -1,9 +1,11 @@
-import { IsString, MinLength, MaxLength, IsOptional } from "class-validator"
+import { IsString, IsOptional } from "class-validator"
 
 export class UpdateUserCredentialsBodyDto {
   @IsOptional()
   @IsString()
-  //@MinLength(8)
-  //@MaxLength(200)
+  username?: string
+  
+  @IsOptional()
+  @IsString()
   password?: string
 }

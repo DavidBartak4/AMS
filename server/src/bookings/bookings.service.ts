@@ -26,6 +26,7 @@ export class BookingService {
     private readonly roomsService: RoomsService,
   ) {}
 
+  /*
   async createBooking(body: CreateBookingBodyDto, confirmation?: boolean) {
     const room = await this.roomsService.getRoom(body.roomId)
     if (!room) {
@@ -319,4 +320,5 @@ export class BookingService {
     })
     return conflict !== null
   }
+    */
 }

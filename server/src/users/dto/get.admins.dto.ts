@@ -1,18 +1,7 @@
-import { IsOptional, IsIn, IsString, IsBoolean, Min, IsInt } from "class-validator"
-import { Type } from "class-transformer"
+import { IsOptional, IsString, IsBoolean } from "class-validator"
+import { PaginatedQueryDto } from "src/common/dto/paginated.query.dto"
 
-export class GetAdminsQueryDto {
-  @IsOptional()
-  @Type(function() { return Number })
-  @IsIn([10, 25, 50, 100])
-  limit?: number = 10
-
-  @IsOptional()
-  @Type(function() { return Number })
-  @IsInt()
-  @Min(1)
-  page?: number = 1
-}
+export class GetAdminsQueryDto extends PaginatedQueryDto {}
 
 export class GetAdminsBodyDto {
   @IsOptional()

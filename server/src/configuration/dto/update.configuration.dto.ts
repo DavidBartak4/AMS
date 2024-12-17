@@ -1,5 +1,5 @@
 import { Type } from "class-transformer"
-import { IsOptional, IsString, IsInt, ValidateNested, MinLength, MaxLength, IsBoolean } from "class-validator"
+import { IsOptional, IsString, IsInt, ValidateNested, IsBoolean } from "class-validator"
 
 class Mail {
   @IsOptional()
@@ -31,7 +31,5 @@ export class UpdateConfigurationBodyDto {
 
   @IsOptional()
   @IsString()
-  //@MinLength(1)
-  //@MaxLength(100)
   companyName?: string
 }

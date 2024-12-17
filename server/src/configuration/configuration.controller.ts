@@ -17,7 +17,7 @@ export class ConfigurationController {
   }
 
   @Patch()
-  async updateMailConfig(@Body() body: UpdateConfigurationBodyDto) {
+  async updateConfiguration(@Body() body: UpdateConfigurationBodyDto) {
     return await this.configurationService.updateConfiguration(body)
   }
 }

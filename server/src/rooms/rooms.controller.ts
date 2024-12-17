@@ -21,6 +21,7 @@ import { AddRoomAttributeBodyDto, AddRoomAttributeParamsDto } from "./dto/add.ro
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
+  /*
   @Post()
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -90,4 +91,5 @@ export class RoomsController {
   async removeRoomAttribute(@Param(new ValidationPipe()) params: RemoveRoomAttributeParamsDto) {
     return await this.roomsService.removeRoomAttribute(params.roomId, params.attributeId)
   }
+  */
 }

@@ -17,6 +17,7 @@ export class RoomsService {
     private readonly mediaService: MediaService,
     private readonly attributeService: AttributesService,
   ) {}
+  /*
 
   async createRoom(body: CreatetRoomBodyDto, files: File[]) {
     const locations = body.locations || body.location || []
@@ -499,4 +500,5 @@ export class RoomsService {
       { $pull: { attributeIds: attributeId } },
     )
   }
+    */
 }

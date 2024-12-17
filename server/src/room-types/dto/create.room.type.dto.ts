@@ -1,8 +1,9 @@
 import { Transform, Type } from "class-transformer"
-import { IsString, IsUrl, ValidateIf, IsNumber, IsOptional, IsIn, IsMongoId } from "class-validator"
+import { IsString, IsUrl, ValidateIf, IsNumber, IsOptional, IsIn, IsMongoId, IsNotEmpty } from "class-validator"
 
 export class CreateRoomTypeBodyDto {
   @IsString()
+  @IsNotEmpty()
   name: string
 
   @IsOptional()

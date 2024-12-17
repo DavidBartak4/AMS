@@ -16,6 +16,7 @@ import { GetRoomsByAvailbilityBodyDto, GetRoomsByAvailbilityQueryDto } from "./d
 export class BookingsController {
   constructor(private readonly bookingsService: BookingService) {}
 
+  /*
   @Post()
   @Roles("admin", "super-admin")
   @UseGuards(OptionalAuthGuard)
@@ -66,4 +67,5 @@ export class BookingsController {
   async getRoomsByAvailbility(@Query() query: GetRoomsByAvailbilityQueryDto ,@Body() body: GetRoomsByAvailbilityBodyDto) {
     return await this.bookingsService.getRoomsByAvailbility(query, body)
   }
+    */
 }

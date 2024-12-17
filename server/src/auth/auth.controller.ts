@@ -27,14 +27,12 @@ export class AuthController {
   @Get("account")
   @UseGuards(JwtAuthGuard)
   async getAccount(@Req() req) {
-    const user = await this.usersService.getUser(req.user.id)
-    user.password = undefined
-    return user
+    return await this.usersService.getUser(req.user.id)
   }
   
   @Patch("account/credentials")
   @UseGuards(JwtAuthGuard)
-  async updateCredentials(@Req() req, @Body() body: UpdateUserCredentialsBodyDto) {
-    return await this.authService.updateCredentials(req.user.id, body)
+  async updateAccountCredentials(@Req() req, @Body() body: UpdateUserCredentialsBodyDto) {
+    return await this.usersService.updateUser(req.user.id, body)
   }
 }

@@ -1,22 +1,19 @@
-import { IsString, IsOptional, MinLength, MaxLength, IsIn, ValidateIf, IsUrl } from "class-validator"
+import { IsString, IsOptional, IsIn, ValidateIf, IsUrl } from "class-validator"
 
 export class CreateAttributeBodyDto {
   @IsString()
-  //@MinLength(1)
-  //@MaxLength(50)
   name: string
 
   @IsOptional()
-  //@IsString()
-  //@MaxLength(1000)
+  @IsString()
   description?: string
 
   @IsOptional()
   @IsIn(["url", "file"])
-  type: string
+  type?: string
   
   @ValidateIf(function(obj) { return obj.type === "url" })
   @IsString()
   @IsUrl()
-  location: string
+  location?: string
 }

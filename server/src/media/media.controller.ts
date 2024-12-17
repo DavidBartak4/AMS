@@ -9,6 +9,7 @@ import { File } from "multer"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { CreateMediaBodyDto } from "./dto/create.media.dto"
 import { DeleteMediaParamsDto } from "./dto/delete.media.dto"
+import { GetMediaStreamParamsDto } from "./dto/get.media.stream.dto"
 
 @Controller("media")
 @Roles("super-admin", "admin")
@@ -19,18 +20,18 @@ export class MediaController {
   @Post()
   @UseInterceptors(FileInterceptor("file"))
   async createMedia(@UploadedFile() file: File, @Body() body: CreateMediaBodyDto) {
-    return await this.mediaService.createMedia({ file: file, ...body})
+    return await this.mediaService.createMedia({ file: file, ...body })
   }
 
   @Get(":mediaId/stream")
-  async getMediaStream(@Param(new ValidationPipe()) params: GetMediaParamsDto, @Res() res: Response) {
+  async getMediaStream(@Param(new ValidationPipe()) params: GetMediaStreamParamsDto, @Res() res: Response) {
     const stream = await this.mediaService.getMediaStream(params.mediaId)
     stream.pipe(res)
   }
 
-  @Get(":mediaId/info")
-  async getMediaInfo(@Param(new ValidationPipe()) params: GetMediaParamsDto) {
-    return await this.mediaService.getMediaInfo(params.mediaId)
+  @Get(":mediaId")
+  async getMedia(@Param(new ValidationPipe()) params: GetMediaParamsDto) {
+    return await this.mediaService.getMedia(params.mediaId)
   }
 
   @Delete(":mediaId")
