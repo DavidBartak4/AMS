@@ -6,7 +6,7 @@ import * as mongoosePaginate from "mongoose-paginate-v2"
 export class User {
   _id: Types.ObjectId
 
-  @Prop({ type: String, unique: true, required: true }) //minlength: 3, maxlength: 20 })
+  @Prop({ type: String, unique: true, required: true })
   username: string
 
   @Prop({ type: String, required: true })

@@ -1,19 +1,9 @@
 import { Type } from "class-transformer"
-import {
-  IsOptional,
-  IsString,
-  IsInt,
-  IsNotEmpty,
-  ValidateNested,
-  MinLength,
-  MaxLength,
-  IsBoolean,
-} from "class-validator"
+import { IsOptional, IsString, IsInt, ValidateNested, MinLength, MaxLength, IsBoolean } from "class-validator"
 
 class Mail {
   @IsOptional()
   @IsString()
-  //@IsNotEmpty()
   mailHost?: string
 
   @IsOptional()
@@ -22,12 +12,10 @@ class Mail {
 
   @IsOptional()
   @IsString()
-  //@IsNotEmpty()
   mailUsername?: string
 
   @IsOptional()
   @IsString()
-  //@IsNotEmpty()
   mailPassword?: string
 
   @IsOptional()

@@ -14,9 +14,7 @@ export class MediaService {
   private bucket: GridFSBucket
 
   constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Media.name) private readonly mediaModel: Model<MediaDocument>, private readonly appConfigService: AppConfigService) {
-    this.bucket = new GridFSBucket(this.connection.db, {
-      bucketName: "media",
-    })
+    this.bucket = new GridFSBucket(this.connection.db, { bucketName: "media" })
   }
 
   async createMedia(body: CreateMediaBodyDto & { file?: File }): Promise<Media> {
@@ -53,11 +51,10 @@ export class MediaService {
   }
 
   async getMediaStream(mediaId: string): Promise<GridFSBucketReadStream> {
-    const media = await this.mediaModel.findById(mediaId).exec()
-    if (!media) { throw new NotFoundException("Media not found") }
-    if (media.type !== "file") { throw new BadRequestException("Media type is not a file") }
+    const mediaInfo = await this.getMediaInfo(mediaId)
+    if (mediaInfo.type !== "file") { throw new BadRequestException("Media must be type of file") }
     const objectId = new ObjectId(mediaId)
-    const file = await this.bucket.find({ _id: objectId }).next()
+    const file = await this.bucket.find(objectId).next()
     if (!file) { throw new NotFoundException("Media file not found") }
     return this.bucket.openDownloadStream(objectId)
   }
@@ -65,24 +62,19 @@ export class MediaService {
   async getMediaInfo(mediaId: string): Promise<Media> {
     const media = await this.mediaModel.findById(mediaId).exec()
     if (!media) { throw new NotFoundException("Media not found") }
-    if (media.type === "file") {
-      media.location = this.getMediaStreamLocation(media._id.toString())
-    }
+    if (media.type === "file") { media.location = this.getMediaStreamLocation(media._id.toString()) }
     return media
   }
 
   async deleteMedia(mediaId: string): Promise<void> {
-    const objectId = new ObjectId(mediaId)
-    const media = await this.mediaModel.findByIdAndDelete(mediaId).exec()
+    const media = await this.mediaModel.findByIdAndDelete({ _id: mediaId }).exec()
     if (!media) { throw new NotFoundException("Media not found") }
+    const objectId = new ObjectId(mediaId)
     if (media.type === "file") { await this.bucket.delete(objectId) }
   }
 
-  async getMediaArray(mediaIds: string[]): Promise<Media[]> {
-    const objectIds = mediaIds.map(function (id) {
-      try { return new ObjectId(id) } 
-      catch (error) { throw new BadRequestException(`Invalid media ID: ${id}`) }
-    })
+  async getMediaInfoArray(mediaIds: string[]): Promise<Media[]> {
+    const objectIds = mediaIds.map(function (mediaId) { return new ObjectId(mediaId) })
     const mediaArray = await this.mediaModel.find({ _id: { $in: objectIds } }).exec()
     const foundIds = mediaArray.map(function (media) { return media._id.toString() })
     const missingIds = mediaIds.filter(function (id) { return !foundIds.includes(id) })
@@ -95,7 +87,7 @@ export class MediaService {
 
   private getMediaStreamLocation(mediaId: string): string {
     const url = this.appConfigService.get("url")
-    if (!url) { throw new BadRequestException("Stream location is not active") }
+    if (!url) { throw new BadRequestException(`Stream location is not active for media ${mediaId}`) }
     return `${url}/media/${mediaId}/stream`
   }
 }

@@ -4,13 +4,13 @@ import * as mongoosePaginate from "mongoose-paginate-v2"
 
 @Schema({ timestamps: true })
 export class Attribute {
-  @Prop({ required: true, minlength: 1, maxlength: 50 })
+  @Prop({ type: String, required: true })
   name: string
 
-  @Prop({ maxlength: 1000 })
+  @Prop({ type: String })
   description?: string
 
-  @Prop()
+  @Prop({ type: String })
   imageId?: string
 }
 

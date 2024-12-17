@@ -1,6 +1,11 @@
 **CHECKLIST**
-1. Users
-2. Auth
+1. App
+2. Common
+3. Users
+4. Auth
+5. Configuration
+6. Media
+7. Attributes
 
 **TODO**
 1. Filter rooms by availbility

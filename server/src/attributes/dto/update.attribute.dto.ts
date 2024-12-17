@@ -3,13 +3,13 @@ import { IsString, IsOptional, MinLength, MaxLength, IsIn, ValidateIf, IsUrl } f
 export class UpdateAttributeBodyDto {
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(50)
+  //@MinLength(1)
+  //@MaxLength(50)
   name?: string
 
   @IsOptional()
   @IsString()
-  @MaxLength(1000)
+  //@MaxLength(1000)
   description?: string
 
   @IsOptional()

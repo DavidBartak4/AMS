@@ -1,18 +1,16 @@
-import { NotFoundException, Injectable, BadRequestException, ConflictException, UnauthorizedException } from "@nestjs/common"
+import { NotFoundException, Injectable, BadRequestException, ConflictException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
 import { User, UserModel } from "./schemas/user.schema"
 import { CreateUserBodyDto } from "./dto/create.user.dto"
 import { GetAdminsBodyDto, GetAdminsQueryDto } from "./dto/get.admins.dto"
 import { UpdateUserBodyDto } from "./dto/update.user.dto"
 import { PaginateResult } from "mongoose"
-import * as bcrypt from "bcryptjs"
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private readonly userModel: UserModel) {}
 
   async createUser(body :CreateUserBodyDto): Promise<User> { 
-    body.password = await this.hashPassword(body.password)
     try {
       return await this.userModel.create(body)
     } catch (err) {
@@ -26,9 +24,9 @@ export class UsersService {
     select = select || "-password"
     const filter: any = { roles: { $in: ["admin", "super-admin"] } }
     if (body.username) { filter.username = body.partial ? { $regex: body.username, $options: "i" } : body.username }
-    const adminsPage = await this.userModel.paginate(filter, { page: query.page, limit: query.limit, select: select })
-    if (adminsPage.totalPages > query.page) { throw new NotFoundException("Page not found") }
-    return adminsPage
+    const admins = await this.userModel.paginate(filter, { page: query.page, limit: query.limit, select: select })
+    if (query.page > admins.totalPages) { throw new NotFoundException("Page not found") }
+    return admins
   }
 
   async getUser(userId: string): Promise<User> {
@@ -44,7 +42,6 @@ export class UsersService {
   }
 
   async updateUser(userId: string, dto: UpdateUserBodyDto): Promise<User> {
-    if (dto.password) { dto.password = await this.hashPassword(dto.password) }
     await this.getUser(userId)
     return await this.userModel.findByIdAndUpdate(userId, dto).exec()
   }
@@ -74,16 +71,5 @@ export class UsersService {
   async getUserRoles(userId: string): Promise<string[]> {
     const user = await this.getUser(userId)
     return user.roles
-  }
-
-  async validateCredentials(username: string, password: string): Promise<User> {
-    const user = await this.findUser({ username: username})
-    const isValidCredentials = await bcrypt.compare(password, user.password)
-    if (!isValidCredentials) { throw new UnauthorizedException("Invalid credentials") }
-    return user
-  }
-
-  private async hashPassword(password: string): Promise<string> {
-    return await bcrypt.hash(password, 10)
   }
 }

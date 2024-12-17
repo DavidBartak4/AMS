@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectModel } from "@nestjs/mongoose"
-import { AttributeModel } from "./schemas/attribute.schema"
+import { Attribute, AttributeModel } from "./schemas/attribute.schema"
 import { MediaService } from "src/media/media.service"
 import { CreateAttributeBodyDto } from "./dto/create.attribute.dto"
 import { File } from "multer"
@@ -19,74 +19,55 @@ export class AttributesService {
   async createAttribute(body: CreateAttributeBodyDto, file?: File) {
     let media
     if (body.type) { media = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location }) }
-    const attribute = await this.attributeModel.create({ imageId: media._id, name: body.name, description: body.description})
-    return {
-      __v: attribute.__v,
-      _id: attribute._id,
-      image: media,
-      name: attribute.name,
-      description: attribute.description
-    }
+    let attribute: any = await this.attributeModel.create({ name: body.name, description: body.description, imageId: media._id })
+    attribute = attribute.toObject()
+    attribute.image = media
+    attribute.imageId = undefined
+    return attribute
   }
 
   async getAttributes(query: GetAttributesQueryDto) {
-    const attributesPage = await this.attributeModel.paginate({}, {  page: query.page, limit: query.limit, populate: { path: "imageId", model: "Media" } })
-    if (query.page > attributesPage.totalPages) { throw new NotFoundException("Page not found") }
-    const transformedDocs = await Promise.all(attributesPage.docs.map(async (attribute) => {
-      const media = await this.mediaService.getMediaInfo(attribute.imageId)
-      return {
-        __v: attribute.__v,
-        _id: attribute._id,
-        image: media,
-        name: attribute.name,
-        description: attribute.description
-      }
+    const attributes = await this.attributeModel.paginate({}, {  page: query.page, limit: query.limit, populate: { path: "imageId", model: "Media" } })
+    if (query.page > attributes.totalPages) { throw new NotFoundException("Page not found") }
+    attributes.docs = await Promise.all(attributes.docs.map(async function (attribute: any) {
+      attribute = attribute.toObject()
+      attribute.image = attribute.imageId
+      attribute.imageId = undefined
+      return attribute
     }))
-    return {
-      ...attributesPage,
-      docs: transformedDocs
-    }
+    return attributes
   }
 
   async getAttribute(attributeId: string) {
-    const attribute = await this.attributeModel.findById(attributeId).populate("imageId").exec()
+    let attribute: any = await this.attributeModel.findById(attributeId).populate({ path: "imageId", model: "Media" }).exec()
     if (!attribute) { throw new NotFoundException("Attribute not found") }
-    const media = await this.mediaService.getMediaInfo(attribute.imageId)
-    return {
-      __v: attribute.__v,
-      _id: attribute._id,
-      image: media,
-      name: attribute.name,
-      description: attribute.description
-    }
+    attribute = attribute.toObject()
+    attribute.image = attribute.imageId
+    attribute.imageId = undefined
+    return attribute
   }
 
   async updateAttribute(attributeId: string, body: UpdateAttributeBodyDto, file?: File) {
-    const attribute = await this.attributeModel.findById(attributeId).exec()
-    if (!attribute) { throw new NotFoundException("Attribute not found") }
+    await this.getAttribute(attributeId)
     let media
+    let attribute: any = await this.attributeModel.findById(attributeId).populate({ path: "imageId", model: "Media" }).exec()
+    if (body.name) { attribute.name = body.name }
+    if (body.description) { attribute.description = body.description }
     if (body.type) {
-      if (attribute.imageId) { await this.mediaService.deleteMedia(attribute.imageId) }
-      media = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location })
-      attribute.imageId = media._id
-    } else {
-      media = await this.mediaService.getMediaInfo(attribute.imageId)
+      if (attribute.imageId) { await this.mediaService.deleteMedia(attribute.imageId._id.toString()) }
+      media = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location }) 
+      attribute.imageId = media._id.toString()
     }
-    if (body.name) attribute.name = body.name
-    if (body.description) attribute.description = body.description
     await attribute.save()
-    return {
-      __v: attribute.__v,
-      _id: attribute._id,
-      image: media,
-      name: attribute.name,
-      description: attribute.description,
-    }
+    attribute = attribute.toObject()
+    attribute.imageId = undefined
+    attribute.image = media
+    return attribute
   }
 
   async deleteAttribute(attributeId: string) {
+    await this.getAttribute(attributeId)
     const attribute = await this.attributeModel.findById(attributeId).exec()
-    if (!attribute) { throw new NotFoundException("Attribute not found") }
     if (attribute.imageId) { await this.mediaService.deleteMedia(attribute.imageId.toString()) }
     await this.attributeModel.deleteOne({ _id: attributeId })
     this.eventEmitter.emit("attribute.deleted", attributeId)

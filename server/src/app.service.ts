@@ -19,9 +19,7 @@ export class AppService {
 
   private setupAppConfig() { this.appConfigService.set("url", this.configuration.url) }
 
-  private async setupConfiguration() {
-    try { await this.configurationService.createConfiguration() } catch (err) {}
-  }
+  private async setupConfiguration() { try { await this.configurationService.createConfiguration() } catch (err) {} }
 
   private async setupSuperAdmin() {
     const body: LoginBodyDto = { username: "super_admin", password: "12345678"}

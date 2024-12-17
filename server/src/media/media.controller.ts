@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, UseInterceptors, UploadedFile, Body, BadRequestException, Delete } from "@nestjs/common"
+import { Controller, Get, Param, Res, ValidationPipe, UseGuards, Post, UseInterceptors, UploadedFile, Body, Delete } from "@nestjs/common"
 import { Response } from "express"
 import { MediaService } from "./media.service"
 import { JwtAuthGuard } from "src/auth/guards/jwt.guard"

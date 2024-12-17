@@ -11,11 +11,10 @@ export class ConfigurationService {
   constructor(@InjectModel(Configuration.name) private readonly configurationModel: Model<ConfigurationDocument>) {}
 
   async createConfiguration(body: CreateConfigurationBodyDto = {}): Promise<Configuration> {
-    const configuration = await this.configurationModel.findOne()
+    let configuration = await this.configurationModel.findOne()
     if (configuration) { throw new BadRequestException("Configuration already exists") }
     if (body.mail?.mailUsername && body.mail?.mailPassword) { await this.verifyMail(body.mail) }
-    const createdConfiguration = new this.configurationModel(body)
-    return await createdConfiguration.save()
+    return await this.configurationModel.create(body)
   }
 
   async getConfiguration(): Promise<Configuration> {
@@ -27,14 +26,14 @@ export class ConfigurationService {
   async updateConfiguration(body: UpdateConfigurationBodyDto): Promise<Configuration> {
     const configuration = await this.configurationModel.findOne()
     const mail = {
-      mailHost: body.mail?.mailHost ?? configuration?.mail.mailHost,
-      mailPort: body.mail?.mailPort ?? configuration?.mail.mailPort,
-      mailUsername: body.mail?.mailUsername ?? configuration?.mail.mailUsername,
-      mailPassword: body.mail?.mailPassword ?? configuration?.mail.mailPassword,
-      useCompanyName: body.mail?.useCompanyName ?? configuration?.mail.useCompanyName ?? true,
+      mailHost: body.mail?.mailHost || configuration?.mail.mailHost,
+      mailPort: body.mail?.mailPort || configuration?.mail.mailPort,
+      mailUsername: body.mail?.mailUsername || configuration?.mail.mailUsername,
+      mailPassword: body.mail?.mailPassword || configuration?.mail.mailPassword,
+      useCompanyName: body.mail?.useCompanyName || configuration?.mail.useCompanyName || true,
     }
     if (mail.mailUsername && mail.mailPassword) { await this.verifyMail(mail) }
-    const updatePayload = { mail, companyName: body.companyName ?? configuration?.companyName }
+    const updatePayload = { mail, companyName: body.companyName || configuration?.companyName }
     return await this.configurationModel.findOneAndUpdate({}, updatePayload, { new: true, upsert: true })
   }
 
