@@ -7,7 +7,7 @@ import { UpdateUserBodyDto } from "./dto/update.user.dto"
 import { PaginateResult } from "mongoose"
 import * as bcrypt from "bcryptjs"
 import { InvalidCredentialsException, UserAlreadyHasRoleException, UserAlredyNotHaveRoleException, UsernameAlreadyTakenException, UserNotFoundException } from "./users.exceptions"
-import { PageNotFound } from "src/common/exceptions.common"
+import { PageNotFoundException } from "src/common/exceptions.common"
 
 @Injectable()
 export class UsersService {
@@ -25,9 +25,9 @@ export class UsersService {
     query =  query || { page: 1, limit: 10 }
     body = body || {}
     const filter: any = { roles: { $in: ["super-admin", "admin"] } }
-    if (body.username) { filter.username = body.partial ? { $regex: body.username, $options: "i" } : body.username }
+    if (body.username !== undefined) { filter.username = body.partial ? { $regex: body.username, $options: "i" } : body.username }
     const admins = await this.userModel.paginate(filter, { page: query.page, limit: query.limit, select: "-password" })
-    if (query.page > admins.totalPages) { throw new PageNotFound }
+    if (query.page > admins.totalPages) { throw new PageNotFoundException }
     return admins
   }
 

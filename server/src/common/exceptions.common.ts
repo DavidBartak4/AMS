@@ -1,6 +1,6 @@
-import { BadRequestException, NotFoundException, UnauthorizedException } from "@nestjs/common"
+import { NotFoundException } from "@nestjs/common"
 
-export class PageNotFound extends NotFoundException {
+export class PageNotFoundException extends NotFoundException {
     constructor() {
         super("Page not found")
     }

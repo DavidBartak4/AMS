@@ -5,7 +5,8 @@
 4. Configuration
 5. Common
 6. Media
-7. 
+7. Attributes
+8. 
 
 **TODO**
 1. Filter rooms by availbility

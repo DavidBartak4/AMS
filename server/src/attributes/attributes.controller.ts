@@ -8,7 +8,7 @@ import { File } from "multer"
 import { CreateAttributeBodyDto } from "./dto/create.attribute.dto"
 import { DeleteAttributeParamsDto } from "./dto/delete.attribute.dto"
 import { GetAttributeParamsDto } from "./dto/get.attribute.dto"
-import { GetAttributesQueryDto } from "./dto/get.attributes.dto"
+import { GetAttributesBodyDto, GetAttributesQueryDto } from "./dto/get.attributes.dto"
 import { UpdateAttributeBodyDto } from "./dto/update.attribute.dto"
 import { filterFileTypes } from "src/common/helpers/fileInterceptor.helpers"
 
@@ -25,8 +25,8 @@ export class AttributesController {
   }
 
   @Get()
-  async getAttributes(@Query(new ValidationPipe()) query: GetAttributesQueryDto) {
-    return await this.attributesService.getAttributes(query)
+  async getAttributes(@Query(new ValidationPipe()) query: GetAttributesQueryDto, @Body() body: GetAttributesBodyDto) {
+    return await this.attributesService.getAttributes(query, body)
   }
 
   @Get("/:attributeId")

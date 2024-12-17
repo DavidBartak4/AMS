@@ -10,5 +10,5 @@ export class GetAttributesBodyDto {
 
   @IsOptional()
   @IsString()
-  username?: string
+  name?: string
 }
