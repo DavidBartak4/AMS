@@ -4,8 +4,8 @@ import { IsCurrencyCode } from "src/common/decorators/currency.codes.decorator"
 
 export class CreatetRoomBodyDto {
   @IsString()
-  @MinLength(1)
-  @MaxLength(50)
+  //@MinLength(1)
+  //@MaxLength(50)
   name: string
 
   @IsOptional()
@@ -15,28 +15,19 @@ export class CreatetRoomBodyDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"])
+  //@IsIn(["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"])
   ["room.type"]?: string  
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
+  //@MinLength(1)
+  //@MaxLength(1000)
   description?: string
 
   @Type(function() { return Number })
   @IsNumber()
   @Min(0)
   capacity: number
-
-  @IsOptional()
-  @Transform(function(field) {
-    const value = field.value
-    return Array.isArray(value) ? value : [value]
-  })
-  @IsString({ each: true })
-  @IsMongoId({ each: true })
-  attributeIds?: string[]
 
   @Type(function() { return Number })
   @IsNumber()
@@ -55,6 +46,33 @@ export class CreatetRoomBodyDto {
   @Type(function() { return Number })
   @IsNumber()
   ["main.index"]: number
+
+  @IsOptional()
+  @Transform(function({ value }) {
+    value = JSON.parse(value)
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  locations?: string[]
+
+  @IsOptional()
+  @Transform(function({ value }) {
+    value = JSON.parse(value)
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsMongoId({ each: true })
+  attributeIds?: string[]
+
+  @IsOptional()
+  @Transform(function(field) {
+    const value = field.value
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsMongoId({ each: true })
+  attributeId?: string[]
 
   @IsOptional()
   @Transform(function(field) {

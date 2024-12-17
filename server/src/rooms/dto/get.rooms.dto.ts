@@ -1,4 +1,4 @@
-import { IsOptional, IsIn, Min, IsNumber, MinLength, MaxLength, IsString, ValidateNested } from "class-validator"
+import { IsOptional, IsIn, Min, IsNumber, MinLength, MaxLength, IsString, ValidateNested, IsInt } from "class-validator"
 import { IsCurrencyCode } from "src/common/decorators/currency.codes.decorator"
 import { Type } from "class-transformer"
 import { IsRange } from "src/common/decorators/range.decorator"
@@ -30,13 +30,14 @@ export class GetRoomsQueryDto {
   @IsOptional()
   @Type(function() { return Number })
   @Min(1)
+  @IsInt()
   page?: number = 1
 }
 
 export class GetRoomsBodyDto {
   @IsOptional()
-  @MinLength(1)
-  @MaxLength(50)
+  //@MinLength(1)
+  //@MaxLength(50)
   name?: string
 
   @IsOptional()

@@ -24,8 +24,8 @@ export class UpdateRoomParamsDto {
 export class UpdateRoomBodyDto {
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(50)
+  //@MinLength(1)
+  //@MaxLength(50)
   name?: string
 
   @IsOptional()
@@ -37,18 +37,12 @@ export class UpdateRoomBodyDto {
 
   @IsOptional()
   @IsString()
-  @IsIn([
-    "SINGLE_ROOM",
-    "DOUBLE_ROOM",
-    "DOUBLE_ROOM_DELUXE",
-    "TRIPLE_ROOM_DELUXE",
-  ])
   ["room.type"]?: string
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(1000)
+  //@MinLength(1)
+  //@MaxLength(1000)
   description?: string
 
   @IsOptional()
@@ -56,15 +50,6 @@ export class UpdateRoomBodyDto {
   @IsNumber()
   @Min(0)
   capacity?: number
-
-  @IsOptional()
-  @Transform(function (field) {
-    const value = field.value
-    return Array.isArray(value) ? value : [value]
-  })
-  @IsString({ each: true })
-  @IsMongoId({ each: true })
-  attributeIds?: string[]
 
   @IsOptional()
   @Type(function () {
@@ -83,8 +68,44 @@ export class UpdateRoomBodyDto {
   @IsIn(["url", "file"])
   ["main.type"]?: string
 
-  @ValidateIf(function(obj) { return obj.type === "url" })
-  @IsString()
-  @IsUrl()
-  location: string
+  @ValidateIf(function(obj) { return obj.mainType})
+  @Type(function() { return Number })
+  @IsNumber()
+  ["main.index"]: number
+
+  @IsOptional()
+  @Transform(function(field) {
+    const value = field.value
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  location?: string[]
+
+  @IsOptional()
+  @Transform(function({ value }) {
+    value = JSON.parse(value)
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsUrl({}, { each: true })
+  locations?: string[]
+
+  @IsOptional()
+  @Transform(function({ value }) {
+    value = JSON.parse(value)
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsMongoId({ each: true })
+  attributeIds?: string[]
+
+  @IsOptional()
+  @Transform(function(field) {
+    const value = field.value
+    return Array.isArray(value) ? value : [value]
+  })
+  @IsString({ each: true })
+  @IsMongoId({ each: true })
+  attributeId?: string[]
 }

@@ -19,7 +19,7 @@ export class Room {
   @Prop()
   number?: number
 
-  @Prop({ enum: ["SINGLE_ROOM", "DOUBLE_ROOM", "DOUBLE_ROOM_DELUXE", "TRIPLE_ROOM_DELUXE"] })
+  @Prop({ type: String })
   roomType?: string
 
   @Prop({ maxlength: 1000 })

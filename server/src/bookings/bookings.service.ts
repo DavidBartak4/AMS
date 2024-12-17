@@ -15,6 +15,7 @@ import { GetBookingsBodyDto, GetBookingsQueryDto } from "./dto/get.bookings.dto"
 import { UpdateBookingBodyDto } from "./dto/update.booking.dto"
 import * as fs from "fs"
 import * as path from "path"
+import { GetRoomsByAvailbilityBodyDto, GetRoomsByAvailbilityQueryDto } from "./dto/get.rooms.by.availbility.dto"
 
 @Injectable()
 export class BookingService {
@@ -271,6 +272,34 @@ export class BookingService {
     if (await this.isBookingConflict(roomId, checkIn, checkOut)) {
       throw new BadRequestException("Booking range is occupied")
     }
+  }
+  
+  async getRoomsByAvailbility(query: GetRoomsByAvailbilityQueryDto, body: GetRoomsByAvailbilityBodyDto) {
+    const { checkIn, checkOut } = body
+  const { limit = 10, page = 1 } = query
+  const conflictedRooms = await this.bookingModel.distinct('roomId', {
+    $or: [
+      {
+        checkIn: { $lt: new Date(checkOut) },
+        checkOut: { $gt: new Date(checkIn) },
+      },
+    ],
+  })
+  const filter = {
+    _id: { $nin: conflictedRooms },
+  }
+  const options = {
+    limit,
+    page,
+  }
+  const result = await this.roomsService.roomModel.paginate(filter, options)
+  return {
+    total: result.totalDocs,
+    limit: result.limit,
+    page: result.page,
+    totalPages: result.totalPages,
+    rooms: result.docs,
+  }
   }
 
   async isBookingConflict(

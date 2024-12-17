@@ -13,17 +13,19 @@ import { File } from "multer"
 @Injectable()
 export class RoomsService {
   constructor(
-    @InjectModel(Room.name) private readonly roomModel: RoomModel,
+    @InjectModel(Room.name) readonly roomModel: RoomModel,
     private readonly mediaService: MediaService,
     private readonly attributeService: AttributesService,
   ) {}
 
   async createRoom(body: CreatetRoomBodyDto, files: File[]) {
-    body.location = body.location || []
+    const locations = body.locations || body.location || []
+    const attributeIds = body.attributeIds || body.attributeId || []
+
     let mainImageId
     if (body["main.type"]) {
       const file = files[body["main.index"]]
-      const location = body.location[body["main.index"]]
+      const location = locations[body["main.index"]]
       if (
         (body["main.type"] === "file" && !file) ||
         (body["main.type"] === "url" && !location)
@@ -32,14 +34,17 @@ export class RoomsService {
           "No associated image for provided main.index",
         )
       }
+
       const media = await this.mediaService.createMedia({
-        file: file,
+        file: body["main.type"] === "file" ? file : undefined,
+        location: body["main.type"] === "url" ? location : undefined,
         type: body["main.type"],
-        location: location,
       })
       mainImageId = media._id
     }
-    const imageIds = []
+
+    const imageIds: string[] = []
+
     for (const [index, file] of files.entries()) {
       if (body["main.type"] !== "file" || body["main.index"] !== index) {
         const media = await this.mediaService.createMedia({
@@ -49,15 +54,17 @@ export class RoomsService {
         imageIds.push(media._id.toString())
       }
     }
-    for (const [index, location] of body.location.entries()) {
+
+    for (const [index, location] of locations.entries()) {
       if (body["main.type"] !== "url" || body["main.index"] !== index) {
         const media = await this.mediaService.createMedia({
-          location: location,
+          location,
           type: "url",
         })
         imageIds.push(media._id.toString())
       }
     }
+
     const room = await this.roomModel.create({
       name: body.name,
       number: body.number,
@@ -66,14 +73,13 @@ export class RoomsService {
       price: { value: body.price, currency: body["price.currency"] },
       mainImageId,
       imageIds,
-      attributeIds: body.attributeIds,
+      attributeIds,
     })
-    let attributes = []
-    if (body.attributeIds) {
-      attributes = await Promise.all(
-        body.attributeIds.map((id) => this.attributeService.getAttribute(id)),
-      )
-    }
+
+    const attributes = await Promise.all(
+      attributeIds.map((id) => this.attributeService.getAttribute(id)),
+    )
+
     return {
       __v: room.__v,
       _id: room._id,
@@ -88,7 +94,7 @@ export class RoomsService {
       images: await Promise.all(
         imageIds.map((id) => this.mediaService.getMediaInfo(id)),
       ),
-      attributes: attributes,
+      attributes,
     }
   }
 
@@ -188,46 +194,47 @@ export class RoomsService {
   }
 
   async updateRoom(roomId: string, body: UpdateRoomBodyDto, file?: File) {
-    const room = await this.roomModel.findById(roomId)
+    const room = await this.roomModel.findById(roomId);
     if (!room) {
-      throw new BadRequestException(`Room with ID ${roomId} not found`)
+      throw new BadRequestException(`Room with ID ${roomId} not found`);
     }
-    if (body.name) room.name = body.name
-    if (body.number) room.number = body.number
-    if (body["room.type"]) room.roomType = body["room.type"]
-    if (body.description) room.description = body.description
-    if (body.capacity) room.capacity = body.capacity
-    if (body.price) {
-      room.price.value = body.price
-    }
-    if (body["price.currency"]) {
-      room.price.currency = body["price.currency"]
-    }
-    if (body.attributeIds) {
-      room.attributeIds = body.attributeIds
-    }
-    let mainImageId = room.mainImageId
+
+    const locations = body.locations || body.location || [];
+    const attributeIds = body.attributeIds || body.attributeId || [];
+
+    if (body.name) room.name = body.name;
+    if (body.number) room.number = body.number;
+    if (body["room.type"]) room.roomType = body["room.type"];
+    if (body.description) room.description = body.description;
+    if (body.capacity) room.capacity = body.capacity;
+    if (body.price) room.price.value = body.price;
+    if (body["price.currency"]) room.price.currency = body["price.currency"];
+    if (attributeIds.length > 0) room.attributeIds = attributeIds;
+
+    let mainImageId = room.mainImageId;
     if (body["main.type"]) {
       if (body["main.type"] === "file" && file) {
         const media = await this.mediaService.createMedia({
           file,
           type: "file",
-        })
-        mainImageId = media._id.toString()
-      } else if (body["main.type"] === "url" && body.location) {
+        });
+        mainImageId = media._id.toString();
+      } else if (body["main.type"] === "url" && locations.length > 0) {
         const media = await this.mediaService.createMedia({
-          location: body.location,
+          location: locations[0],
           type: "url",
-        })
-        mainImageId = media._id.toString()
+        });
+        mainImageId = media._id.toString();
       } else {
         throw new BadRequestException(
           "No associated image for the provided main.type",
-        )
+        );
       }
-      room.mainImageId = mainImageId
+      room.mainImageId = mainImageId;
     }
-    await room.save()
+
+    await room.save();
+
     return {
       __v: room.__v,
       _id: room._id,
@@ -243,12 +250,11 @@ export class RoomsService {
         room.imageIds.map((id) => this.mediaService.getMediaInfo(id)),
       ),
       attributes: await Promise.all(
-        (room.attributeIds || []).map((id) =>
-          this.attributeService.getAttribute(id),
-        ),
+        room.attributeIds.map((id) => this.attributeService.getAttribute(id)),
       ),
-    }
+    };
   }
+
 
   async deleteRoom(roomId: string): Promise<void> {
     const room = await this.roomModel.findById(roomId)

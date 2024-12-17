@@ -3,6 +3,7 @@ import {
   IsDateString,
   IsEmail,
   IsIn,
+  IsInt,
   IsMongoId,
   IsNumber,
   IsOptional,
@@ -22,6 +23,7 @@ export class GetBookingsQueryDto {
   @IsOptional()
   @Type(() => Number)
   @Min(1)
+  @IsInt()
   page?: number = 1
 }
 

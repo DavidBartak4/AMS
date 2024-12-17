@@ -10,6 +10,7 @@ import { GetBookingsBodyDto, GetBookingsQueryDto } from "./dto/get.bookings.dto"
 import { UpdateBookingBodyDto, UpdateBookingParamsDto } from "./dto/update.booking.dto"
 import { DeleteBookingParamsDto } from "./dto/delete.booking.dto"
 import { GetBookingConflictBodyDto } from "./dto/get.booking.conflict.dto"
+import { GetRoomsByAvailbilityBodyDto, GetRoomsByAvailbilityQueryDto } from "./dto/get.rooms.by.availbility.dto"
 
 @Controller("bookings")
 export class BookingsController {
@@ -59,5 +60,10 @@ export class BookingsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   async getBookingConflict(@Body() body: GetBookingConflictBodyDto) {
     return await this.bookingsService.getBookingConflict(body.roomId, body.checkIn, body.checkOut)
+  }
+
+  @Post("availability")
+  async getRoomsByAvailbility(@Query() query: GetRoomsByAvailbilityQueryDto ,@Body() body: GetRoomsByAvailbilityBodyDto) {
+    return await this.bookingsService.getRoomsByAvailbility(query, body)
   }
 }

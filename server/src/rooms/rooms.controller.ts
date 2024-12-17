@@ -57,7 +57,7 @@ export class RoomsController {
   @Post(":roomId/images")
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @UseInterceptors(FilesInterceptor("files", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
+  @UseInterceptors(FilesInterceptor("file", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
   async createRoomImages(@Param(new ValidationPipe()) params: CreateRoomImagesParamsDto, @Body() body: CreateRoomImagesBodyDto, @UploadedFiles() files: File[]) {
     return await this.roomsService.createRoomImages(params.roomId, body.location, files)
   }
@@ -72,7 +72,7 @@ export class RoomsController {
   @Patch(":roomId/images")
   @Roles("super-admin", "admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @UseInterceptors(FilesInterceptor("files", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
+  @UseInterceptors(FilesInterceptor("file", Infinity, { fileFilter: filterFileTypes(["image/jpeg", "image/png", "image/webp"]) }))
   async updateRoomImages(@Param(new ValidationPipe()) params: UpdateRoomImagesParamsDto, @Body() body: UpdateRoomImagesBodyDto, @UploadedFiles() files: File[]) {
     return await this.roomsService.updateRoomImages(params.roomId, body.location, files)
   }
