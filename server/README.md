@@ -6,6 +6,7 @@
 5. Configuration
 6. Media
 7. Attributes
+8. Room-Types
 
 **TODO**
 1. Filter rooms by availbility
@@ -13,6 +14,3 @@
 3. RoomType Domain
 4. POST /rooms create room by type
 5. Booking isPaid
-
-**IMPL**
-@IsInt()

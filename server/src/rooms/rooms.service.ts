@@ -8,7 +8,7 @@ import { GetRoomsBodyDto, GetRoomsQueryDto } from "./dto/get.rooms.dto"
 import { AttributesService } from "src/attributes/attributes.service"
 import { OnEvent } from "@nestjs/event-emitter"
 import { UpdateRoomBodyDto } from "./dto/update.room.dto"
-import { CreateRoomImagesBodyDto } from "./dto/create.room.images.dto"
+import { File } from "multer"
 
 @Injectable()
 export class RoomsService {

@@ -27,7 +27,7 @@ export class AttributesService {
   }
 
   async getAttributes(query: GetAttributesQueryDto) {
-    const attributes = await this.attributeModel.paginate({}, {  page: query.page, limit: query.limit, populate: { path: "imageId", model: "Media" } })
+    const attributes = await this.attributeModel.paginate({}, { page: query.page, limit: query.limit, populate: { path: "imageId", model: "Media" } })
     if (query.page > attributes.totalPages) { throw new NotFoundException("Page not found") }
     attributes.docs = await Promise.all(attributes.docs.map(async function (attribute: any) {
       attribute = attribute.toObject()
@@ -48,8 +48,8 @@ export class AttributesService {
   }
 
   async updateAttribute(attributeId: string, body: UpdateAttributeBodyDto, file?: File) {
-    await this.getAttribute(attributeId)
-    let media
+    const attributeObject = await this.getAttribute(attributeId)
+    let media = attributeObject.image
     let attribute: any = await this.attributeModel.findById(attributeId).populate({ path: "imageId", model: "Media" }).exec()
     if (body.name) { attribute.name = body.name }
     if (body.description) { attribute.description = body.description }
@@ -60,8 +60,8 @@ export class AttributesService {
     }
     await attribute.save()
     attribute = attribute.toObject()
-    attribute.imageId = undefined
     attribute.image = media
+    attribute.imageId = undefined
     return attribute
   }
 

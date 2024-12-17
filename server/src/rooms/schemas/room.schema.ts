@@ -31,11 +31,11 @@ export class Room {
   @Prop()
   imageIds?: string[]
 
-  @Prop({ required: true, min: 0 })
-  capacity: number
+  @Prop({ min: 0 })
+  capacity?: number
 
-  @Prop({ required: true, type: Price })
-  price: Price
+  @Prop({ type: Price })
+  price?: Price
 
   @Prop()
   attributeIds?: string[]
