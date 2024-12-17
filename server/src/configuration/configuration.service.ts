@@ -34,10 +34,7 @@ export class ConfigurationService {
       useCompanyName: body.mail?.useCompanyName ?? configuration?.mail.useCompanyName ?? true,
     }
     if (mail.mailUsername && mail.mailPassword) { await this.verifyMail(mail) }
-    const updatePayload = {
-      mail,
-      companyName: body.companyName ?? configuration?.companyName ?? "example company",
-    }
+    const updatePayload = { mail, companyName: body.companyName ?? configuration?.companyName }
     return await this.configurationModel.findOneAndUpdate({}, updatePayload, { new: true, upsert: true })
   }
 
@@ -53,8 +50,6 @@ export class ConfigurationService {
         },
         connectionTimeout: 10000
       }).verify()
-    } catch (err) {
-      throw new BadRequestException("Mail configuration verification failed")
-    }
+    } catch (err) { throw new BadRequestException("Mail configuration verification failed") }
   }
 }

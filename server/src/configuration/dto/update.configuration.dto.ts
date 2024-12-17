@@ -13,7 +13,7 @@ import {
 class Mail {
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  //@IsNotEmpty()
   mailHost?: string
 
   @IsOptional()
@@ -22,12 +22,12 @@ class Mail {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  //@IsNotEmpty()
   mailUsername?: string
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  //@IsNotEmpty()
   mailPassword?: string
 
   @IsOptional()
@@ -38,12 +38,12 @@ class Mail {
 export class UpdateConfigurationBodyDto {
   @IsOptional()
   @ValidateNested()
-  @Type(() => Mail)
+  @Type(function() { return Mail })
   mail?: Mail
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
-  @MaxLength(100)
+  //@MinLength(1)
+  //@MaxLength(100)
   companyName?: string
 }

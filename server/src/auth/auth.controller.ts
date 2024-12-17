@@ -15,24 +15,26 @@ export class AuthController {
   @Post("admins")
   @Roles("super-admin")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  signup(@Body() body: SignupBodyDto) {
-    return this.authService.signup(body)
+  async signup(@Body() body: SignupBodyDto) {
+    return await this.authService.signup(body)
   }
 
   @Post("login")
-  login(@Body() body: LoginBodyDto) {
-    return this.authService.login(body)
+  async login(@Body() body: LoginBodyDto) {
+    return await this.authService.login(body)
   }
 
   @Get("account")
   @UseGuards(JwtAuthGuard)
-  getAccount(@Req() req) {
-    return this.usersService.getUser(req.user.id, "-password")
+  async getAccount(@Req() req) {
+    const user = await this.usersService.getUser(req.user.id)
+    user.password = undefined
+    return user
   }
   
   @Patch("account/credentials")
   @UseGuards(JwtAuthGuard)
-  updateCredentials(@Req() req, @Body() body: UpdateUserCredentialsBodyDto) {
-    return this.authService.updateCredentials(req.user.id, body)
+  async updateCredentials(@Req() req, @Body() body: UpdateUserCredentialsBodyDto) {
+    return await this.authService.updateCredentials(req.user.id, body)
   }
 }

@@ -6,10 +6,10 @@ import * as mongoosePaginate from "mongoose-paginate-v2"
 export class User {
   _id: Types.ObjectId
 
-  @Prop({ unique: true, required: true, minlength: 3, maxlength: 20 })
+  @Prop({ type: String, unique: true, required: true }) //minlength: 3, maxlength: 20 })
   username: string
 
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   password: string
 
   @Prop({ type: [String], enum: ["admin", "super-admin"], default: ["admin"] })

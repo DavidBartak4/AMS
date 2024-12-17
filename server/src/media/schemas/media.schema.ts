@@ -4,19 +4,18 @@ import { Document, Types } from "mongoose"
 @Schema({ collection: "media" })
 export class Media {
     _id: Types.ObjectId
-
     __v: number
 
-    @Prop({ required: true, enum: ["url", "file"]})
+    @Prop({ type: String, required: true, enum: ["url", "file"]})
     type: string
 
-    @Prop()
+    @Prop({ type: String })
     filename?: string
 
-    @Prop()
+    @Prop({ type: String })
     location?: string
 
-    @Prop()
+    @Prop({ type: String })
     contentType?: string
 }
 

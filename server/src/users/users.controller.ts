@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, ValidationPipe, Req, Delete, Query, Body } from "@nestjs/common"
+import { Controller, Get, Param, UseGuards, ValidationPipe, Delete, Query, Body } from "@nestjs/common"
 import { JwtAuthGuard } from "../auth/guards/jwt.guard"
 import { UsersService } from "./users.service"
 import { RolesGuard } from "../auth/guards/roles.guard"
@@ -14,23 +14,21 @@ export class UsersController {
 
   @Get("admins")
   @Roles("super-admin", "admin")
-  getAdmins(@Query(new ValidationPipe()) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto, @Req() req) {
-    let select = "-password"
-    if (!req.user.roles.includes("super-admin")) { select = `${select} -roles` }
-    return this.usersService.getAdmins(body, query, select)
+  async getAdmins(@Query(new ValidationPipe()) query: GetAdminsQueryDto, @Body() body: GetAdminsBodyDto) {
+    return await this.usersService.getAdmins(body, query)
   }
 
   @Get(":userId")
   @Roles("super-admin", "admin")
-  getUser(@Param(new ValidationPipe()) params: GetUserParamsDto, @Req() req) {
-    let select = "-password"
-    if (!req.user.roles.includes("super-admin")) { select = `${select} -roles` }
-    return this.usersService.getUser(params.userId, select)
+  async getUser(@Param(new ValidationPipe()) params: GetUserParamsDto) {
+    const user = await this.usersService.getUser(params.userId)
+    user.password = undefined
+    return user
   }
 
   @Delete(":userId")
   @Roles("super-admin")
-  deleteUser(@Param(new ValidationPipe()) params: DeleteUserParamsDto) {
-    return this.usersService.deleteUser(params.userId)
+  async deleteUser(@Param(new ValidationPipe()) params: DeleteUserParamsDto) {
+    return await this.usersService.deleteUser(params.userId)
   }
 }

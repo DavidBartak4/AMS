@@ -3,7 +3,7 @@ import { Document } from "mongoose"
 
 @Schema()
 export class Auth {
-  @Prop()
+  @Prop({ type: String })
   jwtSecret?: string
 }
 
