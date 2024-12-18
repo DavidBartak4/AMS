@@ -18,11 +18,11 @@ export class RoomType {
   @Prop({ type: String })
   mainImageId?: string
 
-  @Prop({ type: [String] })
-  imageIds?: string[]
+  @Prop({ type: [String], default: [] })
+  imageIds: string[]
 
-  @Prop({ type: [String] })
-  attributeIds?: string[]
+  @Prop({ type: [String], default: [] })
+  attributeIds: string[]
 }
 
 export type RoomTypeDocument = RoomType & Document

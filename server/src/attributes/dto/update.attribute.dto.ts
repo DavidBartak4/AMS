@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, ValidateIf, IsUrl } from "class-validator"
+import { IsString, IsOptional, IsBoolean, IsIn, ValidateIf, IsUrl } from "class-validator"
 
 export class UpdateAttributeBodyDto {
   @IsOptional()
@@ -11,7 +11,7 @@ export class UpdateAttributeBodyDto {
 
   @IsOptional()
   @IsIn(["url", "file"])
-  type?: string
+  type: string
   
   @ValidateIf(function(obj) { return obj.type === "url" })
   @IsString()

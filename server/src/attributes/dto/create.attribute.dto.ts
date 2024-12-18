@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, ValidateIf, IsUrl } from "class-validator"
+import { IsString, IsOptional, IsIn, ValidateIf, IsUrl, IsBoolean } from "class-validator"
 
 export class CreateAttributeBodyDto {
   @IsString()

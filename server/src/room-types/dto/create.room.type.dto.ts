@@ -1,9 +1,8 @@
 import { Transform, Type } from "class-transformer"
-import { IsString, IsUrl, ValidateIf, IsNumber, IsOptional, IsIn, IsMongoId, IsNotEmpty } from "class-validator"
+import { IsString, IsUrl, ValidateIf, IsNumber, IsOptional, IsIn, IsMongoId, Min } from "class-validator"
 
 export class CreateRoomTypeBodyDto {
   @IsString()
-  @IsNotEmpty()
   name: string
 
   @IsOptional()
@@ -13,16 +12,17 @@ export class CreateRoomTypeBodyDto {
   @IsOptional()
   @Type(function() { return Number })
   @IsNumber()
+  @Min(0)
   capacity?: number
 
   @IsOptional()
   @IsIn(["url", "file"])
   ["main.type"]?: string
 
-  @ValidateIf(function(obj) { return obj.mainType})
-  @Type(function() { return Number })
-  @IsNumber()
-  ["main.index"]: number
+  @ValidateIf(function(obj) { return obj["main.type"] === "url" })
+  @IsString()
+  @IsUrl()
+  ["main.location"]?: string
 
   @IsOptional()
   @Transform(function(field) {

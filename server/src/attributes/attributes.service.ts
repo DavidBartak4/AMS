@@ -21,11 +21,21 @@ export class AttributesService {
   async createAttribute(body: CreateAttributeBodyDto, file?: File) {
     const existingAttribute = await this.attributeModel.findOne({ name: body.name }).exec()
     if (existingAttribute) { throw new AttributeNameNotUniqueException }
-    const image = await this.mediaService.createMedia({ file: file, type: body.type, location: body.location })
-    const attribute = await this.attributeModel.create({ 
+    let image
+    if (body.type) {
+      if (body.type === "url") {
+        if (body.location === undefined) { throw new AttributeExpectedMediaUploadException }
+        image = await this.mediaService.createMedia({ type: "url", location: body.location })
+      }
+      if (body.type === "file") {
+        if (file === undefined) { throw new AttributeExpectedMediaUploadException }
+        image = await this.mediaService.createMedia({ type: "file", file: file })
+      }
+    }
+    const attribute = await this.attributeModel.create({
       name: body.name,
       description: body.description,
-      imageId: image._id.toString()
+      imageId: image && image._id.toString()
     })
     const attributeObject: any = attribute.toObject()
     attributeObject.image = image
@@ -39,9 +49,11 @@ export class AttributesService {
     if (body.name !== undefined) { filter.name = body.partial ? { $regex: body.name, $options: "i" } : body.name }
     const attributes = await this.attributeModel.paginate(filter, { page: query.page, limit: query.limit, populate: populate })
     if (query.page > attributes.totalPages) { throw new PageNotFoundException }
+    const mediaService = this.mediaService
     attributes.docs = await Promise.all(attributes.docs.map(async function (attribute: any) {
       attribute = attribute.toObject()
       attribute.image = attribute.imageId
+      if (attribute.image && attribute.image.type === "file") { attribute.image.location = mediaService.getMediaStreamLocation(attribute.imageId) }
       delete attribute.imageId
       return attribute
     }))
@@ -53,6 +65,7 @@ export class AttributesService {
     if (!attribute) { throw new AttributeNotFoundException }
     const attributeObject: any = attribute.toObject()
     attributeObject.image = attribute.imageId
+    if (attributeObject.image && attributeObject.image.type === "file") { attributeObject.image.location = this.mediaService.getMediaStreamLocation(attribute.imageId) }
     delete attributeObject.imageId
     return attributeObject
   }
@@ -61,9 +74,6 @@ export class AttributesService {
     const attribute: any = await this.attributeModel.findById(attributeId).exec()
     if (!attribute) { throw new AttributeNotFoundException }
     if (body.name) {
-      if (body.name === attribute.name) {
-        throw new BadRequestException("Attribute name cannot be the same as the current attribute name")
-      }
       const existingAttribute = await this.attributeModel.findOne({ name: body.name }).exec()
       if (existingAttribute && existingAttribute._id.toString() !== attributeId) {
         throw new AttributeNameNotUniqueException
@@ -71,14 +81,21 @@ export class AttributesService {
       attribute.name = body.name
     }
     if (body.description) { attribute.description = body.description }
-    if (body.type) {
+    if (body.type === undefined) {
+      if ( body.location === "null") {
+        if (!attribute.imageId) { throw new BadRequestException("Attribute already does not have an image") }
+        await this.mediaService.deleteMedia(attribute.imageId)
+        attribute.imageId = null
+      }
+    }
+    if (body.type !== undefined) {
       let media
       if (body.type === "url") {
-        if (!body.location) { throw new AttributeExpectedMediaUploadException }
+        if (body.location !== undefined) { throw new AttributeExpectedMediaUploadException }
         media = await this.mediaService.createMedia({ type: "url", location: body.location })
       }
       if (body.type === "file") {
-        if (!file) { throw new AttributeExpectedMediaUploadException }
+        if (file !== undefined) { throw new AttributeExpectedMediaUploadException }
         media = await this.mediaService.createMedia({ type: "file", file: file })
       }
       if (attribute.imageId) {
@@ -90,6 +107,7 @@ export class AttributesService {
     const populatedAttribute: any = await this.attributeModel.findById(attributeId).populate({ path: "imageId", model: "Media" }).exec()
     const attributeObject = populatedAttribute.toObject()
     attributeObject.image = populatedAttribute.imageId
+    if (attributeObject.image && attributeObject.image.type === "file") { attributeObject.image.location = this.mediaService.getMediaStreamLocation(attribute.imageId) }
     delete attributeObject.imageId
     return attributeObject
   }

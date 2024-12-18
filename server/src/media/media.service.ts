@@ -77,7 +77,7 @@ export class MediaService {
     if (media.type === "file") { await this.bucket.delete(mediaObjectId) }
   }
 
-  private getMediaStreamLocation(mediaId: string): string {
+  getMediaStreamLocation(mediaId: string): string {
     const url = this.appConfigService.get("url")
     if (!url) { throw new MediaStreamLocationNotActiveException }
     return `${url}/media/${mediaId}/stream`

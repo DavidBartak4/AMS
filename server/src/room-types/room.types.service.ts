@@ -1,12 +1,15 @@
 import { InjectModel } from "@nestjs/mongoose"
 import { MediaService } from "src/media/media.service"
 import { AttributesService } from "src/attributes/attributes.service"
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common"
+import { BadRequestException, Injectable } from "@nestjs/common"
 import { RoomType, RoomTypeModel } from "./schemas/room.type.schema"
 import { CreateRoomTypeBodyDto } from "./dto/create.room.type.dto"
 import { File } from "multer"
 import { UpdateRoomTypeBodyDto } from "./dto/update.room.type.dto"
 import { GetRoomTypesBodyDto, GetRoomTypesQueryDto } from "./dto/get.room.types.dto"
+import { DuplicateAttributesException, RoomTypeExpectedMediaUploadException, RoomTypeNameNotUniqueException, RoomTypeNotFoundException } from "./room.types.exceptions"
+import { PageNotFoundException } from "src/common/exceptions.common"
+import { OnEvent } from "@nestjs/event-emitter"
 
 @Injectable()
 export class RoomsTypesService {
@@ -16,169 +19,221 @@ export class RoomsTypesService {
     private readonly attributeService: AttributesService,
   ) {}
 
-  /*
-  async createRoomType(body: CreateRoomTypeBodyDto, files: File[]) {
-    const existingRoomTypes = await this.getRoomTypes({ name: body.name }, {})
-    if (existingRoomTypes.docs.length > 0) {
-      throw new ConflictException("Room type with this name already exists")
-    }
-    const { mainImageId, mainImage } = await this.handleMainImage(body, files)
-    const { imageIds, images } = await this.handleOtherImages(body, files)
-    const attributes = body.attributeIds ? await this.handleAttributes(body.attributeIds) : []
-    let roomType: any = await this.roomTypesModel.create({
+  async createRoomType(body: CreateRoomTypeBodyDto, files: File[], file: File) {
+    const existingRoomType = await this.roomTypesModel.findOne({ name: body.name })
+    if (existingRoomType) { throw new RoomTypeNameNotUniqueException }
+    const roomTypeObject = {
       name: body.name,
-      mainImageId,
       description: body.description,
-      capacity: body.capacity,
-      imageIds,
-      attributeIds: body.attributeIds || [],
-    })
-    return this.transformRoomTypeResponse(roomType, images, mainImage, attributes)
+      mainImageId: null,
+      imageIds: [],
+      attributeIds: []
+    }
+    const attributes = (body.attributeId || body.attributeIds) ? [...(body.attributeId || []), ...(body.attributeIds || [])] : undefined
+    if (attributes) {
+      const attributeService = this.attributeService
+      await Promise.all(body.attributeIds.map(async function (attributeId) {
+        await attributeService.getAttribute(attributeId)
+      }))
+      const uniqueAttributes = new Set(attributes)
+      if (uniqueAttributes.size !== attributes.length) { throw new DuplicateAttributesException }
+      roomTypeObject.attributeIds = attributes
+    }
+    let mainImageMediaBody
+    if (body["main.type"]) {
+      if (body["main.type"] === "file") {
+        if (file === undefined) { throw new RoomTypeExpectedMediaUploadException }
+        mainImageMediaBody = { type: "file", file: file }
+      }
+      if (body["main.type"] === "url") {
+        if (body["main.location"] === undefined) { throw new RoomTypeExpectedMediaUploadException }
+        mainImageMediaBody = { type: "url", location: body["main.location"] }
+      }
+    }
+    const imagesMediaBody = []
+    let locations = (body.locations || body.location) ? [...(body.locations || []), ...(body.location || [])] : undefined
+    if (locations) {
+      await Promise.all(locations.map(function(location) {
+        imagesMediaBody.push({ type: "url", location: location })
+      }))
+    }
+    if (files) {
+      await Promise.all(files.map(function(file) {
+        imagesMediaBody.push({ type: "file", file: file })
+      }))
+    }
+    if (mainImageMediaBody) {
+      const image = await this.mediaService.createMedia(mainImageMediaBody)
+      roomTypeObject.mainImageId = image._id.toString()
+    }
+    const mediaService = this.mediaService
+    await Promise.all(imagesMediaBody.map(async function(imageMediaBody) {
+      const image = await mediaService.createMedia(imageMediaBody)
+      roomTypeObject.imageIds.push(image._id.toString())
+    }))
+    const roomtype = await this.roomTypesModel.create(roomTypeObject)
+    try {
+      return await this.getRoomType(roomtype._id.toString())
+    } catch (err) {
+      throw err
+    }
   }
 
-  async updateRoomType(roomTypeId: string, body: UpdateRoomTypeBodyDto, files: File[]) {
-    const roomType: any = await this.getRoomTypeById(roomTypeId)
-    if (body.attributeIds) {
-      const attributes = await this.handleAttributes(body.attributeIds)
-      roomType.attributeIds = body.attributeIds
-      roomType.attributes = attributes
+  async getRoomTypes(query: GetRoomTypesQueryDto, body: GetRoomTypesBodyDto) {
+    const populate = [
+      { path: "imageIds", model: "Media" },
+      { path: "mainImageId", model: "Media" },
+      { path: "attributeIds", model: "Attribute", populate: [{ path: "imageId", model: "Media" }] }
+    ]
+    const filter: any = {}
+    if (body.name !== undefined) {
+      filter.name = body.partial ? { $regex: body.name, $options: "i" } : body.name
     }
-    if (body.name && body.name !== roomType.name) {
-      const existingRoomTypes = await this.getRoomTypes({ name: body.name }, {})
-      if (existingRoomTypes.docs.length > 0) throw new ConflictException("Room type with this name already exists")
-      roomType.name = body.name
-    }
-    const { mainImageId, mainImage } = await this.handleMainImage(body, files, roomType.mainImageId)
-    if (mainImageId) roomType.mainImageId = mainImageId
-    if (files.length > 0 || body.locations) {
-      await this.deleteImages(roomType.imageIds)
-      const { imageIds, images } = await this.handleOtherImages(body, files)
-      roomType.imageIds = imageIds
-      roomType.images = images
-    }
-    roomType.capacity = body.capacity || roomType.capacity
-    roomType.description = body.description || roomType.description
-    await roomType.save()
-    return this.transformRoomTypeResponse(roomType, roomType.images, mainImage, roomType.attributes)
+    if (body.capacity) { filter.capacity = body.capacity }
+    if (body.attributeIds && body.attributeIds.length > 0) { filter.attributeIds = body.partial ? { $all: body.attributeIds } : { $size: body.attributeIds.length, $all: body.attributeIds } }
+    const roomTypes =  await this.roomTypesModel.paginate(filter, { page: query.page, limit: query.limit, populate: populate })
+    if (query.page > roomTypes.totalPages) { throw new PageNotFoundException }
+    const mediaService = this.mediaService
+      roomTypes.docs = await Promise.all(roomTypes.docs.map(async function (roomType: any) {
+        roomType = roomType.toObject()
+        roomType.images = roomType.imageIds
+        roomType.mainImage = roomType.mainImageId
+        roomType.attributes = roomType.attributeIds
+        delete roomType.imageIds
+        delete roomType.mainImageId
+        delete roomType.attributeIds
+        if (roomType.mainImage && roomType.mainImage.type === "file") {
+          roomType.mainImage.location = await mediaService.getMediaStreamLocation(roomType.mainImage._id.toString())
+        }
+        await Promise.all(roomType.images.map(async function(image) {
+          if (image.type === "file") {
+            image.location = await mediaService.getMediaStreamLocation(image._id.toString())
+          }
+        }))
+        await Promise.all(roomType.attributes.map(async function(attribute) {
+          attribute.image = attribute.imageId
+          delete attribute.imageId
+          if (attribute.image && attribute.image.type === "file") {
+            attribute.image.location = await mediaService.getMediaStreamLocation(attribute.image._id.toString())
+          }
+        }))
+        return roomType
+      }))
+      return roomTypes
   }
 
   async getRoomType(roomTypeId: string) {
-    let roomType: any = await this.roomTypesModel.findById(roomTypeId).populate([
-      { path: "mainImageId", model: "Media" },
+    const roomType = await this.roomTypesModel.findById(roomTypeId).populate([
       { path: "imageIds", model: "Media" },
-      { path: "attributeIds", model: "Attribute" },
-    ])
-    if (!roomType) { throw new NotFoundException(`Room type with ID ${roomTypeId} not found`) }
-    roomType = roomType.toObject()
-    roomType.mainImage = roomType.mainImageId
-    roomType.images = roomType.imageIds
-    roomType.attributes = roomType.attributeIds
-    roomType.mainImageId = undefined
-    roomType.imageIds = undefined
-    roomType.attributeIds = undefined
-    return roomType
+      { path: "mainImageId", model: "Media" },
+      { path: "attributeIds", model: "Attribute", populate: [{ path: "imageId", model: "Media" }] }
+    ]).exec()
+    if (!roomType) { throw new RoomTypeNotFoundException }
+    const roomTypeObject: any = roomType.toObject()
+    roomTypeObject.images = roomTypeObject.imageIds
+    roomTypeObject.mainImage = roomTypeObject.mainImageId
+    roomTypeObject.attributes = roomTypeObject.attributeIds
+    const mediaService = this.mediaService
+    await Promise.all(roomTypeObject.attributes.map(async function(attribute) {
+      attribute.image = attribute.imageId
+      delete attribute.imageId
+      if (attribute.image && attribute.image.type === "file") {
+        attribute.image.location = await mediaService.getMediaStreamLocation(attribute.image._id.toString())
+      }
+    }))
+    delete roomTypeObject.imageIds
+    delete roomTypeObject.mainImageId
+    delete roomTypeObject.attributeIds
+    return roomTypeObject
   }
 
-  async getRoomTypes(body: GetRoomTypesBodyDto, query: GetRoomTypesQueryDto) {
-    const filter: any = {}
-    if (body.name) { filter.name = body.partial ? { $regex: body.name, $options: "i" } : body.name }
-    if (body.capacity) { filter.capacity = body.capacity }
-    if (body.attributeIds && body.attributeIds.length > 0) { filter.attributeIds = body.partial ? { $all: body.attributeIds } : { $size: body.attributeIds.length, $all: body.attributeIds } }
-    const roomTypes = await this.roomTypesModel.paginate(filter, { page: query.page, limit: query.limit, populate: [
-      { path: "imageIds", model: "Media" },
-      { path: "mainImageId", model: "Media"},
-      { path: "attributeIds", model: "Attribute"}
-    ]})
-    if (query.page > roomTypes.totalPages) { throw new NotFoundException("Page not found") }
-    roomTypes.docs = await Promise.all(roomTypes.docs.map(async function (roomType: any) {
-      roomType = roomType.toObject()
-      roomType.images = roomType.imageIds
-      roomType.mainImage = roomType.mainImageId
-      roomType.attributes = roomType.attributeIds
-      roomType.mainImageId = undefined
-      roomType.imageIds = undefined
-      roomType.attributeIds = undefined
-      return roomType
+  async updateRoomType(roomTypeId: string, body: UpdateRoomTypeBodyDto, files: File[], file: File) {
+    const roomType = await this.roomTypesModel.findById(roomTypeId).exec()
+    if (!roomType) { throw new RoomTypeNotFoundException }
+    if (body.name) {
+      const existingRoomType = await this.roomTypesModel.findOne({ name: body.name })
+      if (existingRoomType) { throw new RoomTypeNameNotUniqueException }
+    }
+    const attributes = (body.attributeId || body.attributeIds) ? [...(body.attributeId || []), ...(body.attributeIds || [])] : undefined
+    if (attributes) {
+      const attributeService = this.attributeService
+      await Promise.all(body.attributeIds.map(async function (attributeId) {
+        await attributeService.getAttribute(attributeId)
+      }))
+      const uniqueAttributes = new Set(attributes)
+      if (uniqueAttributes.size !== attributes.length) { throw new DuplicateAttributesException }
+      roomType.attributeIds = attributes
+    }
+    let mainImageMediaBody
+    if (body["main.type"]) {
+      if (body["main.type"] === "file") {
+        if (file === undefined) { throw new RoomTypeExpectedMediaUploadException }
+        mainImageMediaBody = { type: "file", file: file }
+      }
+      if (body["main.type"] === "url") {
+        if (body["main.location"] === undefined) { throw new RoomTypeExpectedMediaUploadException }
+        mainImageMediaBody = { type: "url", location: body["main.location"] }
+      }
+    } else {
+      if (body["main.location"] === "null") {
+        if (roomType.mainImageId === undefined) {
+          throw new BadRequestException("RoomType already not have main image")
+        }
+        await this.mediaService.deleteMedia(roomType.mainImageId)
+        roomType.mainImageId = null
+      }
+    }
+    let locations = (body.locations || body.location) ? [...(body.locations || []), ...(body.location || [])] : undefined
+    const imagesMediaBody = []
+    if (locations || files) {
+      const mediaService = this.mediaService
+      await Promise.all(roomType.imageIds.map(async function(imageId) {
+        await mediaService.deleteMedia(imageId)
+      }))
+      roomType.imageIds = []
+    }
+    if (locations) {
+      await Promise.all(locations.map(function(location) {
+        imagesMediaBody.push({ type: "url", location: location })
+      }))
+    }
+    if (files) {
+      await Promise.all(files.map(function(file) {
+        imagesMediaBody.push({ type: "file", file: file })
+      }))
+    }
+    const mediaService = this.mediaService
+    await Promise.all(imagesMediaBody.map(async function(imageMediaBody) {
+      const image = await mediaService.createMedia(imageMediaBody)
+      roomType.imageIds.push(image._id.toString())
     }))
-    return roomTypes
+    if (mainImageMediaBody) {
+      if (roomType.mainImageId) { await this.mediaService.deleteMedia(roomType.mainImageId) }
+      const image = await this.mediaService.createMedia(mainImageMediaBody)
+      roomType.mainImageId = image._id.toString()
+    }
+    await roomType.save()
+    try {
+      return await this.getRoomType(roomType._id.toString())
+    } catch (err) {
+      throw err
+    }
   }
 
   async deleteRoomType(roomTypeId: string) {
-    const roomType = await this.getRoomTypeById(roomTypeId)
-    await this.deleteImages([roomType.mainImageId, ...roomType.imageIds])
-    await this.roomTypesModel.findByIdAndDelete(roomTypeId)
+    const roomType = await this.roomTypesModel.findById(roomTypeId).exec()
+    if (!roomType) { throw new RoomTypeNotFoundException }
+    const mediaService = this.mediaService
+    await Promise.all(roomType.imageIds.map(async function(imageId) {
+      await mediaService.deleteMedia(imageId)
+    }))
+    if (roomType.mainImageId) {
+      await this.mediaService.deleteMedia(roomType.mainImageId)
+    }
+    this.roomTypesModel.findByIdAndDelete(roomTypeId).exec()
     return
   }
 
-  private async handleMainImage(body: any, files: File[], existingMainImageId?: string) {
-    let mainImageId
-    let mainImage
-    if (body["main.type"]) {
-      const index = body["main.index"]
-      const file = files[index]
-      const location = body.locations?.[index] || body.location?.[index]
-      if ((body["main.type"] === "file" && !file) || (body["main.type"] === "url" && !location)) {
-        throw new BadRequestException("No associated image for provided main.index")
-      }
-      if (existingMainImageId) await this.mediaService.deleteMedia(existingMainImageId.toString())
-      const media = await this.mediaService.createMedia({ file, type: body["main.type"], location })
-      mainImageId = media._id
-      mainImage = media
-    }
-    return { mainImageId, mainImage }
-  }
-
-  private async handleOtherImages(body: any, files: File[]) {
-    const imageIds: string[] = []
-    const images: any[] = []
-    for (const [index, file] of files.entries()) {
-      const media = await this.mediaService.createMedia({ file, type: "file" })
-      imageIds.push(media._id.toString())
-      images.push(media)
-    }
-    if (body.locations) {
-      for (const [index, location] of body.locations.entries()) {
-        const media = await this.mediaService.createMedia({ location, type: "url" })
-        imageIds.push(media._id.toString())
-        images.push(media)
-      }
-    }
-    return { imageIds, images }
-  }
-
-  private async handleAttributes(attributeIds: string[]) {
-    return await Promise.all(
-      attributeIds.map(async (id) => {
-        try {
-          return await this.attributeService.getAttribute(id)
-        } catch {
-          throw new BadRequestException(`Could not find attribute with ID ${id}`)
-        }
-      }),
-    )
-  }
-
-  private async deleteImages(imageIds: string[]) {
-    for (const imageId of imageIds) {
-      if (imageId) await this.mediaService.deleteMedia(imageId.toString())
-    }
-  }
-
-  private async getRoomTypeById(roomTypeId: string) {
-    const roomType = await this.roomTypesModel.findById(roomTypeId)
-    if (!roomType) throw new NotFoundException(`Room type with ID ${roomTypeId} not found`)
-    return roomType
-  }
-
-  private transformRoomTypeResponse(roomType: any, images: any[], mainImage: any, attributes: any[]) {
-    const transformed = roomType.toObject()
-    transformed.images = images
-    transformed.mainImage = mainImage
-    transformed.attributes = attributes
-    delete transformed.imageIds
-    delete transformed.mainImageId
-    delete transformed.attributeIds
-    return transformed
-  }
-  */
+  @OnEvent("attribute.deleted")
+  async handleAttributeDeleted(attributeId: string) {}
 }
