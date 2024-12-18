@@ -92,7 +92,8 @@ export class UsersService {
   }
 
   async authenticate(username: string, password: string): Promise<User> {
-    const user = await this.userModel.findOne({ username: username}).exec()
+    const user = await this.userModel.findOne({ username: username }).exec()
+    if (!user) { throw new UserNotFoundException }
     const isValidCredentials = await bcrypt.compare(password, user.password)
     if (!isValidCredentials) { throw new InvalidCredentialsException }
     return await this.userModel.findById(user._id).select("-password").exec()
