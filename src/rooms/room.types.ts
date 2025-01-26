@@ -1,0 +1,1 @@
+export type RoomFiles = { mainImage: File, image: File[] }
