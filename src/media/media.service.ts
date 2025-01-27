@@ -43,7 +43,7 @@ export class MediaService {
             const mediaFileDocument = this.bucket.openUploadStream(file.originalname, { contentType: file.mimetype })
             mediaFileDocument.end(file.buffer)
             mediaFileDocument.on("finish", async function () {
-                const mediaDocument = this.mediaModel.create([{
+                const mediaDocument = await this.mediaModel.create([{
                     id: mediaFileDocument.id,
                     type: "file",
                     filename: file.originalname,

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common"
-import { ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard"
 import { RoomsService } from "./rooms.service"
 import { CreateRoomMultipartDto } from "./dto/create-room.dto"
@@ -19,6 +19,7 @@ import { PaginatedRoomsResponseDto } from "./dto/paginated-rooms-response.dto"
 
 @Controller("rooms")
 @ApiTags("Rooms")
+@ApiBearerAuth()
 //@UseGuards(JwtAuthGuard)
 export class RoomsController {
     constructor(private readonly roomsService: RoomsService) {}
@@ -28,7 +29,7 @@ export class RoomsController {
     @ApiConsumes("multipart/form-data")
     @ApiResponse({ status: 401, description: [ApiErrorMessages.UNAUTHORIZED, AuthErrorMessages.JWT_EXPIRED]})
     @ApiResponse({ status: 404, description: AttributeErrorMessages.ATTRIBUTE_NOT_FOUND})
-    @ApiResponse({ status: 400, description: [ApiErrorMessages.UNSUPPORTED_FILE_TYPE, ...ApiErrorMessages.MULTIPART_DATA] })
+    @ApiResponse({ status: 400, description: [ApiErrorMessages.UNSUPPORTED_FILE_TYPE, ...ApiErrorMessages.MULTIPART_DATA, ...RoomErrorMessages.CREATE_ROOM] })
     @ApiResponse({ status: 409, description: [RoomErrorMessages.ROOM_CODE_ALREADY_IN_USE, RoomErrorMessages.MAIN_IMAGE_CONFLICT]})
     @ApiResponse({ status: 201, type: RoomResponseDto})
     @UseInterceptors(
@@ -56,7 +57,7 @@ export class RoomsController {
     @ApiOperation({ summary: "Updates a room" })
     @ApiConsumes("multipart/form-data")
     @ApiResponse({ status: 401, description: [ApiErrorMessages.UNAUTHORIZED, AuthErrorMessages.JWT_EXPIRED]})
-    @ApiResponse({ status: 400, description: [ApiErrorMessages.UNSUPPORTED_FILE_TYPE, ...ApiErrorMessages.MULTIPART_DATA] })
+    @ApiResponse({ status: 400, description: [ApiErrorMessages.UNSUPPORTED_FILE_TYPE, ...ApiErrorMessages.MULTIPART_DATA, ...RoomErrorMessages.UPDATE_ROOM] })
     @ApiResponse({ status: 404, description: [RoomErrorMessages.ROOM_NOT_FOUND, AttributeErrorMessages.ATTRIBUTE_NOT_FOUND]})
     @ApiResponse({ status: 409, description: [RoomErrorMessages.ROOM_CODE_ALREADY_IN_USE, RoomErrorMessages.MAIN_IMAGE_CONFLICT]})
     @ApiResponse({ status: 200, type: RoomResponseDto})
@@ -69,13 +70,14 @@ export class RoomsController {
         }),
     )
     async updateRoom(@Param() roomParamsDto: RoomParamsDto, @Body() updateRoomMultipartDto: UpdateRoomMultipartDto, @UploadedFiles() files: RoomFiles) {
-        const updateRoomDto = updateRoomMultipartDto.data
+        const updateRoomDto = updateRoomMultipartDto.data || {}
         return await this.roomsService.updateRoom(roomParamsDto.roomId, updateRoomDto, files)
     }
 
     @Get()
     @ApiOperation({ summary: "Gets a paginated list of rooms" })
     @ApiResponse({ status: 401, description: [ApiErrorMessages.UNAUTHORIZED, AuthErrorMessages.JWT_EXPIRED]})
+    @ApiResponse({ status: 400, description: RoomErrorMessages.ROOM_QUERY})
     @ApiResponse({ status: 200, type: PaginatedRoomsResponseDto})
     async getPaginatedRooms(@Query() roomsQueryDto: RoomsQueryDto) {
         return await this.roomsService.getPagiantedRooms(roomsQueryDto)

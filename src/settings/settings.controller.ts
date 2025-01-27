@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpCode, Post, UseGuards } from "@nestjs/common"
 import { SettingsService } from "./settings.service"
 import { UpdateSettingsDto } from "./dto/update-settings.dto"
-import { ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard"
 import { ApiResponse } from "src/common/decorators/api-response.decorator"
 import { SettingsResponseDto } from "./dto/settings-response.dto"
@@ -11,6 +11,7 @@ import { SettingsErrorMessages } from "./settings.exceptions"
 
 @Controller("settings")
 @ApiTags("Settings")
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class SettingsController {
     constructor(private readonly settingsService: SettingsService) {}

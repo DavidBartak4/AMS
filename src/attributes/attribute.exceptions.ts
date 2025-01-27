@@ -6,6 +6,7 @@ export const AttributeErrorMessages = {
     ATTRIBUTE_NOT_FOUND: "Attribute not found",
     ATTRIBUTE_PARAMS: ["attributeId must be a mongodb id"],
     CREATE_ATTRIBUTE: [
+        "data should not be null or undefined",
         "name must be a string",
         "description must be a string",
         "image must be an url"

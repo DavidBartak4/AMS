@@ -14,7 +14,6 @@ import { AttributesService } from "src/attributes/attribute.service"
 import { plainToInstance } from "class-transformer"
 import { UpdateRoomDto } from "./dto/update-room.dto"
 import { RoomsQueryDto } from "./dto/rooms-query.dto"
-import { PaginatedRoomsResponseDto } from "./dto/paginated-rooms-response.dto"
 
 Injectable()
 @HandleDuplicateKeyMongooseError("roomCode", RoomErrorMessages.ROOM_CODE_ALREADY_IN_USE)
@@ -28,25 +27,19 @@ export class RoomsService {
     ) {}
 
     async createRoom(createRoomDto: CreateRoomDto, roomFiles: RoomFiles) {
-        if (!createRoomDto) {
-            const room = await this.roomModel.create({})
+        const session = await this.connection.startSession()
+        session.startTransaction()
+        try {
+            const roomData = await this.toRoom(createRoomDto, roomFiles, session)
+            const room = await this.roomModel.create(roomData.room)
+            await session.commitTransaction()
             const roomResponseDto = await this.toRoomResponse(room)
             return plainToInstance(RoomResponseDto, roomResponseDto, { excludeExtraneousValues: true })
-        } else {
-            const session = await this.connection.startSession()
-            session.startTransaction()
-            try {
-                const roomData = await this.toRoom(createRoomDto, roomFiles, session)
-                const room = await this.roomModel.create(roomData.room)
-                await session.commitTransaction()
-                const roomResponseDto = await this.toRoomResponse(room)
-                return plainToInstance(RoomResponseDto, roomResponseDto, { excludeExtraneousValues: true })
-            } catch (error) {
-                await session.abortTransaction()
-                throw error
-            } finally {
-                session.endSession()
-            }
+        } catch (error) {
+            await session.abortTransaction()
+            throw error
+        } finally {
+            session.endSession()
         }
     }
 
@@ -115,11 +108,10 @@ export class RoomsService {
             if (roomData.mainImage) {
                 await this.mediaService.deleteMedia(oldRoom.mainImageId, session)
             }
-            const mediaService = this.mediaService
-            if (updateRoomDto?.images || roomFiles.image.length > 0) {
+            if (updateRoomDto?.images || roomFiles?.image?.length > 0) {
                 await Promise.all(oldRoom.imageIds.map(async function(imageId: string) {
-                    await mediaService.deleteMedia(imageId, session)
-                }))
+                    await this.mediaService.deleteMedia(imageId, session)
+                }.bind(this)))
             }
             const room = await this.roomModel.findByIdAndUpdate(roomId, roomData.room, { new: true }).exec()
             session.commitTransaction()
@@ -134,30 +126,29 @@ export class RoomsService {
     }
 
     private async toRoom(dto: any, roomFiles: RoomFiles, session?: any): Promise<{ room: Room, mainImage: Media, images: Media[] }> {
-        const mediaService = this.mediaService
         if (dto?.mainImage && roomFiles.mainImage) {
             throw new RoomMainImageConflictException()
         }
         const mainImage = await this.mediaService.createMedia({
             url: dto?.mainImage,
-            file: roomFiles.mainImage
+            file: roomFiles?.mainImage?.[0]
         }, session)
         const images: Media[] = []
         if (dto?.images) {
             await Promise.all(dto.images.map(async function(imageUrl: string) {
-                const image = await mediaService.createMedia({
+                const image = await this.mediaService.createMedia({
                     url: imageUrl
                 }, session)
                 images.push(image)
-            }))
+            }.bind(this)))
         }
         if (roomFiles?.image) {
             await Promise.all(roomFiles.image.map(async function(file: File) {
-                const image = await mediaService.createMedia({
+                const image = await this.mediaService.createMedia({
                     file: file
                 }, session)
                 images.push(image)
-            }))
+            }.bind(this)))
         } 
         const imageIds = []
         images.map(function(image: Media) {

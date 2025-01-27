@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common"
-import { ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { FileInterceptor } from "@nestjs/platform-express"
 import { filterFileTypes } from "src/common/filters/file.filter"
 import { File } from "multer"
@@ -18,6 +18,7 @@ import { AttributeErrorMessages } from "./attribute.exceptions"
 
 @Controller("attributes")
 @ApiTags("Attributes")
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 export class AttributesController {
     constructor(private readonly attributesService: AttributesService) {}

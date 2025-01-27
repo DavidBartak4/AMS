@@ -1,5 +1,5 @@
 import { IsArray, IsMongoId, IsNumber, IsOptional, IsString, IsUrl, ValidateIf, ValidateNested } from "class-validator"
-import { ApiPropertyOptional } from "@nestjs/swagger"
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Expose, Type } from "class-transformer"
 import { NullToUndefined } from "src/common/decorators/null-to-undefined.decorator"
 import { Price } from "src/common/schemas/price.schema"
@@ -51,11 +51,10 @@ export class BaseRoomDto {
     @IsOptional()
     pricing?: string
 
-    @ApiPropertyOptional()
+    @ApiProperty()
     @Expose()
-    @IsOptional()
     @IsString()
-    roomCode?: string
+    roomCode: string
 
     @ApiPropertyOptional()
     @Expose()

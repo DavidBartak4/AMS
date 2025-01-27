@@ -28,7 +28,7 @@ export class Room {
     @Prop({default: null})
     pricing: string
 
-    @Prop({ default: null, unique: true })
+    @Prop({ required: true, unique: true })
     roomCode: string | null
 
     @Prop({ default: null })

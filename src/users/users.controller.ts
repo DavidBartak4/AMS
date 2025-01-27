@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from "@n
 import { CreateUserDto } from "./dto/create-user.dto"
 import { UserParamsDto } from "./dto/user-params.dto"
 import { UsersQueryDto } from "./dto/users-query.dto"
-import { ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { UserResponseDto } from "./dto/user-response.dto"
 import { PaginatedUsersResponseDto } from "./dto/paginated-users-response.dto"
 import { ApiResponse } from "src/common/decorators/api-response.decorator"
@@ -16,6 +16,7 @@ import { Roles } from "src/auth/decorators/roles.decorator"
 
 @Controller("users")
 @ApiTags("Users")
+@ApiBearerAuth()
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 

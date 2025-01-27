@@ -130,7 +130,7 @@ export class AttributesService {
         attributeResponse.id = attributeResponse.id || attribute.id
         attributeResponse.name = attributeResponse.name || attribute.name
         attributeResponse.description = attributeResponse.description || attribute.description
-        attributeResponse.image = attributeResponse.image
+        attributeResponse.image = attributeResponse.image || null
         return attributeResponse
     }
 }

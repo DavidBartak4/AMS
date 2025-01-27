@@ -8,11 +8,12 @@ import { LoginResponseDto } from "./dto/login-response.dto"
 import { AuthErrorMessages } from "./auth.exceptions"
 import { ApiErrorMessages } from "src/common/api.exceptions"
 import { UserResponseDto } from "src/users/dto/user-response.dto"
-import { ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { JwtAuthGuard } from "./guards/jwt-auth.guard"
 
 @Controller("auth")
 @ApiTags("Auth")
+@ApiBearerAuth()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
